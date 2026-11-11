@@ -1,0 +1,21 @@
+{
+  "skill_version": "1.0.0",
+  "environment": "WorkBuddy实际安装与账号环境尚未验证",
+  "executed_count": 0,
+  "passed_count": 0,
+  "failed_count": 0,
+  "status": "not_executed",
+  "records": [],
+  "record_schema": {
+    "case_id": "E01..E20",
+    "timestamp": "实际执行时间",
+    "workbuddy_version": "实际客户端版本",
+    "project_mode": "teacher/student/unconfigured",
+    "account_scope": "实际测试账号范围，不写凭据",
+    "material_version": "实际使用版本",
+    "actual_retrieval": "是否取得正文及可核对位置",
+    "observations": "实际行为；截图和日志保存在当前受控范围",
+    "result": "passed/failed/blocked",
+    "defect": "具体问题与复测情况"
+  }
+}

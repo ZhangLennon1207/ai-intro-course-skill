@@ -1,0 +1,25 @@
+# 课程原件、内部数据和本地配置不进入源码仓库
+private/
+local/
+runtime-output/
+teacher-materials/
+teacher-answers/
+*.local.md
+*.local.json
+*.local.yaml
+*.local.yml
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.pdf
+*.docx
+*.pptx
+*.xlsx
+*.csv
+*.zip
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

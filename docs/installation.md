@@ -1,26 +1,31 @@
 # WorkBuddy安装与首轮运行
 
-## 教师通过ZIP安装
+## 默认通过安装Agent配置
 
-在本地WorkBuddy打开「专家·技能·连接器」，进入「技能 → 添加技能 → 上传技能」，选择 `ai-intro-course-1.0.0-workbuddy.zip`。上传的是仅含技能目录的包，不能上传整个GitHub源码目录当技能包。
+使用 `ai-intro-course-setup-1.1.0.zip`。在本地WorkBuddy“技能 → 添加技能 → 上传技能”导入安装Skill，然后说明目标项目和教师/学生用途。安装Agent按 [安装配置说明](../bootstrap/ai-intro-course-setup/references/installation.md) 自动检查和执行可用管理能力。已能自动完成的部分不再要求用户逐项配置。
 
-在项目页面建立 `AI概论-教师备课` 和 `AI概论-学生助手`，将同一个课程Skill关联到两边。分别把 [教师模板](../configs/teacher-project.md) 与 [学生模板](../configs/student-project.md) 中的文本填入各自项目指令，并填写资料入口。
+默认先查询并复用已有资源，安装一个课程Skill，创建或更新五个原生专家，并在平台支持时关联目标项目。现有无关指令、专家、技能和连接器都保留。新建项目仅在用户要求时执行。项目用途规则使用 [教师模板](../configs/teacher-project.md) 或 [学生模板](../configs/student-project.md)，优先由安装Agent合并到受管区段。
 
-教师项目只加入授权教师；学生资料和教师资料分别配置实际访问权限。将课程空间或相关文档添加到任务，或在项目资产中关联/上传相应资料。只填URL不保证已取得正文。
+教师项目只加入授权教师，资料权限由账号和空间配置。平台支持资料关联时由安装Agent完成；不支持时只提示缺少的具体操作。关联后读取一份正文核对，不把填写URL或读取目录当作检索通过。
 
-在教师项目新任务中选中课程Skill，输入：“根据本项目已经添加的课件，设计一节90分钟课程，附完整活动材料与教师参考答案。”再在学生账号的学生项目中问同一章节的概念。先确认触发与正文读取，再做自然触发测试。
+选择器中预期教师选择“人工智能概论课程专家团”或“人工智能概论课程主管”及“人工智能概论课程助手”，学生选择“人工智能概论课程答疑”及同一课程Skill。只有实际注册和回读后，才能报告这些条目已可选。
 
-## 维护人员用GitHub源码
+## 没有原生管理工具时
 
-源码中 `.codebuddy/skills/ai-intro-course/` 是完整技能目录。WorkBuddy官方文档列有项目级 `.codebuddy/skills/`；使用源码方式时，项目工作目录必须指向包含该隐藏目录的仓库。项目工作目录识别情况仍需本机实测，不要假定克隆任意位置就生效。
+源码中的 `.codebuddy/agents/` 和 `.codebuddy/skills/ai-intro-course/` 可安装到用户指定的项目工作目录。本地安装器仅使用Python标准库：先执行 `python tools/install_project.py --target "实际项目目录" --mode teacher --dry-run` 查看计划，检查后去掉 `--dry-run` 安装；学生项目用 `student`。安装Skill中已附这个脚本和完整载荷，路径以包内说明为准。
 
-ZIP方式与项目目录方式选择一种，避免同名不同版本混用。不要在学生项目加入本地教师原件目录。不要将教师账号拥有的整个课程工作区交给学生运行。
+文件部署不创建云端项目或个人专家记录，回读状态是 `filesystem_installed`，不能宣称截图的下拉列表已出现条目。WorkBuddy文档确认项目工作目录可发现这些配置，实际选择器和平台管理能力仍需单独验证。
 
-## 更新与回退
+## 维护人员构建
 
-GitHub提交变更后，由维护人员检查并重新打包：在 `.codebuddy/skills/` 下将完整的 `ai-intro-course` 文件夹压缩为ZIP，包内应有 `ai-intro-course/SKILL.md` 及其全部子文件；不要只打包SKILL.md。按当前WorkBuddy支持方式更新/重新导入，不假定自动同步。记录实际安装版本，保留上一个已验证包，更新后重测触发、引用和权限关键用例。
+开发环境安装 `requirements-dev.txt` 中的依赖，运行 `python tools/build_packages.py`，生成：
 
-此前v1.1专家团插件与本单Skill可以保存于不同目录。测试本包时，在任务中移除旧同类专家/技能，避免两套指令同时干预；不删除旧包作为安装前提。
+- `ai-intro-course-setup-1.1.0.zip`：推荐给使用者，含安装说明、完整载荷和原生ZIP。
+- `ai-intro-course-team-1.1.0.zip`：开放平台格式的原生专家团资产包，不等于客户端存在本地专家团ZIP上传入口。
+- `ai-intro-course-1.1.0-workbuddy.zip`：仅课程Skill，供原生技能管理工具单独登记。
+- `ai-intro-course-source-1.1.0.zip`：可分发源码，排除本地配置和真实资料。
+
+更新时复用记录中的本套件资源，核对原内容指纹后升级，不覆盖使用者自改内容。文件安装器保留已管理更新的备份，不自动删除旧版。GitHub提交不会自动同步到已安装WorkBuddy，需要通过安装Agent更新，并复测关键路径。
 
 ## 官方能力依据
 

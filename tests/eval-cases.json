@@ -1,6 +1,6 @@
 {
   "suite": "ai-intro-course-workbuddy-acceptance",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "status": "not_executed_in_workbuddy",
   "note": "继承旧版20个种子任务意图并更新判据；资料现状必须实际查询，不沿用固定编号或空库结论。",
   "cases": [

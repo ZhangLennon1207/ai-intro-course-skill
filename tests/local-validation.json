@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-11",
+  "version": "1.1.0",
+  "command": "python -X utf8 -m unittest discover -s tests -v",
+  "local_tests": {"total":20,"passed":18,"failed":0,"skipped":2},
+  "skipped_reason": "Windows测试账号无创建符号链接权限，源/目标链接越界两项未执行",
+  "coverage": ["重复安装", "受管版本升级和备份", "自改文件冲突", "试运行", "写入失败回退", "并发修改保护", "师生独立目录", "同用途升级保留资料入口", "分发包完整性与安装", "排除环境文件和密钥"],
+  "generic_skill_validation": {"scope":"仅临时投影的公共字段及正文，目标平台额外字段由构建器检查","runtime_skill":"passed","setup_skill":"passed"},
+  "independent_setup_observation": {"environment":"隔离本地目录，无WorkBuddy原生管理工具","managed_files_read_back":29,"unrelated_rule_preserved":true,"repeat_pending_changes":0},
+  "workbuddy_tests_executed":0,
+  "workbuddy_registry":"not_executed",
+  "project_selector":"not_executed",
+  "native_delegation":"not_executed",
+  "live_retrieval":"not_executed",
+  "live_permissions":"not_executed"
+}

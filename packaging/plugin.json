@@ -1,0 +1,48 @@
+{
+  "name": "ai-intro-course-team",
+  "expertType": "team",
+  "version": "1.1.0",
+  "description": "Five AI course experts share one course Skill for retrieval-grounded teaching and student support.",
+  "author": {"name": "人工智能概论课程组", "email": "240676751+ZhangLennon1207@users.noreply.github.com"},
+  "homepage": "https://github.com/ZhangLennon1207/ai-intro-course-skill",
+  "agents": [
+    "./agents/ai-intro-course-team-lead.md",
+    "./agents/ai-intro-course-design.md",
+    "./agents/ai-intro-course-domain.md",
+    "./agents/ai-intro-course-assessment.md",
+    "./agents/ai-intro-course-tutor.md"
+  ],
+  "skills": ["./skills/ai-intro-course"],
+  "agentName": "ai-intro-course-team-lead",
+  "teamInfo": {
+    "leadAgent": "ai-intro-course-team-lead",
+    "memberAgents": ["ai-intro-course-design", "ai-intro-course-domain", "ai-intro-course-assessment", "ai-intro-course-tutor"]
+  },
+  "displayName": {"zh": "人工智能概论课程专家团", "en": "Introduction to AI Course Team"},
+  "profession": {"zh": "人工智能概论课程专家团", "en": "Introduction to AI Course Team"},
+  "displayDescription": {
+    "zh": "围绕人工智能概论课程协同检索资料完成教学设计命题评价专业案例与学生答疑支持教师备课和学生学习",
+    "en": "Course specialists retrieve authorized materials and prepare lessons, assessments, cases, and grounded student explanations."
+  },
+  "avatar": "avatars/team.png",
+  "categoryId": "04-DataAI",
+  "plugin": "ai-intro-course-team",
+  "tags": [
+    {"zh": "课程备课", "en": "Course Preparation"},
+    {"zh": "资料检索", "en": "Course Retrieval"},
+    {"zh": "教学答疑", "en": "Learning Support"}
+  ],
+  "quickPrompts": [
+    {"zh": "结合课程资料，为经管和文法类学生设计单元7的90分钟课程。", "en": "Prepare a 90-minute unit 7 lesson for business and humanities students using course materials."},
+    {"zh": "根据已讲内容新编6道练习，附教师参考答案和评价要点。", "en": "Create six new practice questions with a teacher key and evaluation criteria."},
+    {"zh": "结合学生可用课件解释A*搜索，并给一道新编自测题和解析。", "en": "Explain A-star search using student materials and provide a new self-test with an explanation."}
+  ],
+  "defaultInitPrompt": {"zh": "结合课程资料，为经管和文法类学生设计单元7的90分钟课程。", "en": "Prepare a 90-minute unit 7 lesson for business and humanities students using course materials."},
+  "members": [
+    {"id": "ai-intro-course-team-lead", "name": {"zh": "人工智能概论课程主管", "en": "AI Course Team Lead"}, "profession": {"zh": "人工智能概论课程主管", "en": "AI Course Team Lead"}, "avatar": "avatars/ai-intro-course-team-lead.png", "role": "lead"},
+    {"id": "ai-intro-course-design", "name": {"zh": "人工智能概论教学设计", "en": "AI Course Instructional Designer"}, "profession": {"zh": "人工智能概论教学设计", "en": "AI Course Instructional Designer"}, "avatar": "avatars/ai-intro-course-design.png", "role": "member"},
+    {"id": "ai-intro-course-domain", "name": {"zh": "人工智能概论AI领域专家", "en": "AI Course Domain Expert"}, "profession": {"zh": "人工智能概论AI领域专家", "en": "AI Course Domain Expert"}, "avatar": "avatars/ai-intro-course-domain.png", "role": "member"},
+    {"id": "ai-intro-course-assessment", "name": {"zh": "人工智能概论出题评测", "en": "AI Course Assessment Expert"}, "profession": {"zh": "人工智能概论出题评测", "en": "AI Course Assessment Expert"}, "avatar": "avatars/ai-intro-course-assessment.png", "role": "member"},
+    {"id": "ai-intro-course-tutor", "name": {"zh": "人工智能概论课程答疑", "en": "AI Course Tutor"}, "profession": {"zh": "人工智能概论课程答疑", "en": "AI Course Tutor"}, "avatar": "avatars/ai-intro-course-tutor.png", "role": "member"}
+  ]
+}

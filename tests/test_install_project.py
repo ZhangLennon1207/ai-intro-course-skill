@@ -29,7 +29,7 @@ class ProjectInstallerTests(unittest.TestCase):
         for name in installer.AGENT_IDS:
             self.write(self.source / ".codebuddy/agents" / f"{name}.md", f"# {name}\nsource-v1\n")
         self.skill = self.source / ".codebuddy/skills/ai-intro-course"
-        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.1.0\n---\n# Course\n")
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.2.0\n---\n# Course\n")
         self.write(self.skill / "references/concepts.md", "Public fictional concepts.\n")
         self.write(self.source / ".codebuddy/agents/unrelated.md", "not part of this installer\n")
 
@@ -39,7 +39,7 @@ class ProjectInstallerTests(unittest.TestCase):
         path.write_text(content, encoding="utf-8")
 
     def install(self, **kwargs):
-        return installer.install_project(self.source, self.target, kwargs.pop("mode", "teacher"), **kwargs)
+        return installer.install_project(self.source, self.target, **kwargs)
 
     def test_repeat_install_is_a_noop_and_preserves_unrelated_resources(self):
         unrelated = self.target / ".codebuddy/rules/team-policy.md"
@@ -67,10 +67,10 @@ class ProjectInstallerTests(unittest.TestCase):
         dest = self.target / relative
         old = dest.read_bytes()
         self.write(self.source / relative, "updated owned expert\n")
-        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.2.0\n---\n# Course\n")
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.3.0\n---\n# Course\n")
         self.write(self.skill / "references/new.md", "new content\n")
         outcome = self.install()
-        self.assertEqual(outcome["version"], "1.2.0")
+        self.assertEqual(outcome["version"], "1.3.0")
         self.assertEqual(dest.read_text(encoding="utf-8"), "updated owned expert\n")
         saved = [self.target / value for value in outcome["backups"] if value.endswith(relative)]
         self.assertEqual(len(saved), 1)
@@ -105,21 +105,43 @@ class ProjectInstallerTests(unittest.TestCase):
         self.assertEqual((self.target / other_rel).read_bytes(), other_before)
         self.assertEqual(receipt.read_bytes(), receipt_before)
 
-    def test_cross_mode_reuse_is_rejected_without_writes_even_with_a_new_entry(self):
-        for original_mode, new_mode in (("teacher", "student"), ("student", "teacher")):
-            with self.subTest(original_mode=original_mode):
-                target = self.root / (original_mode + "-project")
-                target.mkdir()
-                installer.install_project(self.source, target, original_mode,
-                                          f"https://example.invalid/{original_mode}")
-                before = {p.relative_to(target).as_posix(): p.read_bytes()
-                          for p in target.rglob("*") if p.is_file()}
-                for entry in (None, f"https://example.invalid/{new_mode}"):
-                    with self.assertRaises(installer.InstallationError):
-                        installer.install_project(self.source, target, new_mode, entry)
-                    after = {p.relative_to(target).as_posix(): p.read_bytes()
-                             for p in target.rglob("*") if p.is_file()}
-                    self.assertEqual(after, before)
+    def test_legacy_non_teacher_directory_is_preserved_without_writes(self):
+        self.install(materials_entry="https://example.invalid/legacy-materials")
+        rule_path = self.target / str(installer.RULE_PATH)
+        self.write(rule_path, "course_mode: student\nlegacy learning project\n")
+        receipt_path = self.target / str(installer.RECEIPT_PATH)
+        receipt = json.loads(receipt_path.read_bytes())
+        receipt["mode"] = "student"
+        receipt["version"] = "1.1.0"
+        receipt["files"][str(installer.RULE_PATH)] = installer.digest(rule_path.read_bytes())
+        self.write(receipt_path, json.dumps(receipt))
+        before = {p.relative_to(self.target).as_posix(): p.read_bytes()
+                  for p in self.target.rglob("*") if p.is_file()}
+        for entry in (None, "https://example.invalid/teacher-materials"):
+            with self.assertRaises(installer.InstallationError):
+                self.install(materials_entry=entry)
+            after = {p.relative_to(self.target).as_posix(): p.read_bytes()
+                     for p in self.target.rglob("*") if p.is_file()}
+            self.assertEqual(after, before)
+
+    def test_legacy_teacher_receipt_upgrades_without_reselecting_a_mode(self):
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.1.0\n---\n# Legacy course\n")
+        entry = "https://example.invalid/teacher-materials"
+        self.install(materials_entry=entry)
+        rule_path = self.target / str(installer.RULE_PATH)
+        self.write(rule_path, "course_mode: teacher\nlegacy teacher rule\n")
+        receipt_path = self.target / str(installer.RECEIPT_PATH)
+        receipt = json.loads(receipt_path.read_bytes())
+        receipt["files"][str(installer.RULE_PATH)] = installer.digest(rule_path.read_bytes())
+        self.write(receipt_path, json.dumps(receipt))
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.2.0\n---\n# Teacher course\n")
+        outcome = self.install()
+        self.assertEqual(outcome["version"], "1.2.0")
+        upgraded = json.loads(receipt_path.read_bytes())
+        self.assertEqual(upgraded["mode"], "teacher")
+        self.assertEqual(upgraded["materials_entry"], entry)
+        self.assertIn(str(installer.RULE_PATH), outcome["changed_files"])
+        self.assertIn("preferred_course_agent: ai-intro-course-team-lead", rule_path.read_text(encoding="utf-8"))
 
     def test_same_mode_update_preserves_an_omitted_materials_entry(self):
         entry = "https://example.invalid/authorized-course"
@@ -140,19 +162,10 @@ class ProjectInstallerTests(unittest.TestCase):
         self.assertEqual(rule.read_bytes(), first_rule)
         self.assertEqual(json.loads(receipt.read_bytes())["materials_entry"], entry)
 
-    def test_student_mode_in_a_separate_directory_has_no_teacher_entry_or_backup(self):
-        self.install(materials_entry="https://example.invalid/teacher-course")
-        student = self.root / "student-project"
-        student.mkdir()
-        installer.install_project(self.source, student, "student")
-        receipt = json.loads((student / str(installer.RECEIPT_PATH)).read_text(encoding="utf-8"))
-        self.assertNotIn("materials_entry", receipt)
-        self.assertFalse((student / str(installer.BACKUP_ROOT)).exists())
-        rule = (student / str(installer.RULE_PATH)).read_text(encoding="utf-8")
-        self.assertIn("course_mode: student", rule)
-        self.assertIn("preferred_course_agent: ai-intro-course-tutor", rule)
-        self.assertNotIn("course_materials_entry:", rule)
-        self.assertNotIn("https://example.invalid/teacher-course", rule)
+    def test_non_teacher_api_request_is_rejected_without_writes(self):
+        with self.assertRaises(installer.InstallationError):
+            self.install(mode="student")
+        self.assertEqual(list(self.target.iterdir()), [])
 
     def test_second_write_failure_rolls_back_and_does_not_block_a_later_version(self):
         self.install()
@@ -162,7 +175,7 @@ class ProjectInstallerTests(unittest.TestCase):
                     for rel in json.loads(old_receipt)["files"]}
         for name in installer.AGENT_IDS:
             self.write(self.source / f".codebuddy/agents/{name}.md", f"{name} v2\n")
-        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.2.0\n---\nv2\n")
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.3.0\n---\nv2\n")
         real_write = installer.atomic_write
         writes = 0
 
@@ -184,18 +197,18 @@ class ProjectInstallerTests(unittest.TestCase):
             self.assertEqual((self.target / rel).read_bytes(), content)
         for name in installer.AGENT_IDS:
             self.write(self.source / f".codebuddy/agents/{name}.md", f"{name} v3\n")
-        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.3.0\n---\nv3\n")
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.4.0\n---\nv3\n")
         result = self.install()
-        self.assertEqual(result["version"], "1.3.0")
+        self.assertEqual(result["version"], "1.4.0")
         receipt = json.loads((self.target / str(installer.RECEIPT_PATH)).read_text(encoding="utf-8"))
-        self.assertEqual(receipt["version"], "1.3.0")
+        self.assertEqual(receipt["version"], "1.4.0")
 
     def test_receipt_failure_after_replace_restores_receipt_and_removes_only_new_files(self):
         self.install()
         receipt_path = self.target / str(installer.RECEIPT_PATH)
         old_receipt = receipt_path.read_bytes()
         original_skill = (self.target / ".codebuddy/skills/ai-intro-course/SKILL.md").read_bytes()
-        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.2.0\n---\nv2\n")
+        self.write(self.skill / "SKILL.md", "---\nname: ai-intro-course\nversion: 1.3.0\n---\nv2\n")
         new_relative = ".codebuddy/skills/ai-intro-course/references/new.md"
         self.write(self.source / new_relative, "newly created in failed update\n")
         unrelated = self.target / "user.txt"
@@ -275,9 +288,23 @@ class ProjectInstallerTests(unittest.TestCase):
         self.assertTrue(result["changed_files"])
         self.assertEqual(list(self.target.iterdir()), [])
 
-    def test_explicit_mode_is_required_by_the_cli(self):
+    def test_cli_installs_teacher_project_without_a_mode_option(self):
         result = subprocess.run([sys.executable, str(SCRIPT), "--source-root", str(self.source),
-                                 "--target", str(self.target)], capture_output=True)
+                                 "--target", str(self.target)], capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        outcome = json.loads(result.stdout)
+        self.assertEqual(outcome["mode"], "teacher")
+        receipt = json.loads((self.target / str(installer.RECEIPT_PATH)).read_bytes())
+        self.assertEqual(receipt["mode"], "teacher")
+        legacy = subprocess.run([sys.executable, str(SCRIPT), "--source-root", str(self.source),
+                                 "--target", str(self.target), "--mode", "teacher"],
+                                capture_output=True, text=True, encoding="utf-8")
+        self.assertEqual(legacy.returncode, 0, legacy.stdout + legacy.stderr)
+        self.assertEqual(json.loads(legacy.stdout)["changed_files"], [])
+
+    def test_cli_rejects_a_legacy_student_request_before_writing(self):
+        result = subprocess.run([sys.executable, str(SCRIPT), "--source-root", str(self.source),
+                                 "--target", str(self.target), "--mode", "student"], capture_output=True)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(list(self.target.iterdir()), [])
 

@@ -133,7 +133,7 @@ def archive(name: str, root: str, files: dict[str, bytes]) -> dict:
     dest = DIST / name
     with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as bundle:
         for rel, data in sorted(files.items()):
-            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 11, 0, 0, 0))
+            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 12, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             bundle.writestr(info, data)
@@ -151,8 +151,7 @@ def build() -> dict:
     codebuddy = read_files(ROOT / '.codebuddy/agents', '.codebuddy/agents')
     codebuddy.update(read_files(SKILL, '.codebuddy/skills/ai-intro-course'))
     payload = dict(codebuddy)
-    for name in ('teacher-project.md', 'student-project.md'):
-        payload['configs/' + name] = (ROOT / 'configs' / name).read_bytes()
+    payload['configs/teacher-project.md'] = (ROOT / 'configs/teacher-project.md').read_bytes()
     for name in ('plugin.json', 'settings.json', 'setting.json'):
         payload['packaging/' + name] = (ROOT / 'packaging' / name).read_bytes()
     payload.update(read_files(ROOT / 'packaging/avatars', 'packaging/avatars'))
@@ -171,10 +170,8 @@ def build() -> dict:
             'id': 'ai-intro-course', 'source': '.codebuddy/skills/ai-intro-course',
             'name': metadata(SKILL / 'SKILL.md')['display_name']},
         'experts': experts, 'team_manifest': 'packaging/plugin.json',
-        'project_configs': {'teacher': 'configs/teacher-project.md', 'student': 'configs/student-project.md'},
-        'recommended_selection': {
-            'teacher': {'expert_ids': [manifest['agentName']], 'skill_ids': ['ai-intro-course']},
-            'student': {'expert_ids': ['ai-intro-course-tutor'], 'skill_ids': ['ai-intro-course']}},
+        'project_type': 'teacher', 'project_config': 'configs/teacher-project.md',
+        'recommended_selection': {'expert_ids': [manifest['agentName']], 'skill_ids': ['ai-intro-course']},
         'local_installer': 'scripts/install_project.py',
         'registration': 'Prefer actual native management tools; filesystem installation does not verify selectors.',
         'file_hashes': {path: hashlib.sha256(data).hexdigest() for path, data in sorted(payload.items())}
@@ -209,8 +206,7 @@ def build() -> dict:
         for name, data in read_files(ROOT / folder, folder).items():
             if '__pycache__' not in PurePosixPath(name).parts and not name.endswith('.pyc'):
                 source[name] = data
-    for name in ('teacher-project.md', 'student-project.md'):
-        source['configs/' + name] = (ROOT / 'configs' / name).read_bytes()
+    source['configs/teacher-project.md'] = (ROOT / 'configs/teacher-project.md').read_bytes()
 
     records = [
         archive(f'ai-intro-course-setup-{version}.zip', 'ai-intro-course-setup', setup),
@@ -218,7 +214,7 @@ def build() -> dict:
         runtime_record,
         archive(f'ai-intro-course-source-{version}.zip', 'ai-intro-course-skill', source)
     ]
-    report = {'version': version, 'native_experts': 5, 'runtime_skills': 1,
+    report = {'version': version, 'project_type': 'teacher', 'native_experts': 5, 'runtime_skills': 1,
               'setup_skills': 1, 'source_structure': 'passed', 'archives': records,
               'workbuddy_registry': 'not_executed', 'project_selector': 'not_executed',
               'live_retrieval': 'not_executed', 'live_permissions': 'not_executed'}

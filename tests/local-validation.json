@@ -1,16 +1,47 @@
 {
-  "date": "2026-11-11",
-  "version": "1.1.0",
+  "date": "2026-11-12",
+  "version": "1.2.0",
+  "project_type": "teacher",
   "command": "python -X utf8 -m unittest discover -s tests -v",
-  "local_tests": {"total":20,"passed":18,"failed":0,"skipped":2},
+  "local_tests": {
+    "total": 22,
+    "passed": 20,
+    "failed": 0,
+    "skipped": 2
+  },
   "skipped_reason": "Windows测试账号无创建符号链接权限，源/目标链接越界两项未执行",
-  "coverage": ["重复安装", "受管版本升级和备份", "自改文件冲突", "试运行", "写入失败回退", "并发修改保护", "师生独立目录", "同用途升级保留资料入口", "分发包完整性与安装", "排除环境文件和密钥"],
-  "generic_skill_validation": {"scope":"仅临时投影的公共字段及正文，目标平台额外字段由构建器检查","runtime_skill":"passed","setup_skill":"passed"},
-  "independent_setup_observation": {"environment":"隔离本地目录，无WorkBuddy原生管理工具","managed_files_read_back":29,"unrelated_rule_preserved":true,"repeat_pending_changes":0},
-  "workbuddy_tests_executed":0,
-  "workbuddy_registry":"not_executed",
-  "project_selector":"not_executed",
-  "native_delegation":"not_executed",
-  "live_retrieval":"not_executed",
-  "live_permissions":"not_executed"
+  "coverage": [
+    "默认教师安装且无需模式参数",
+    "旧教师安装升级与入口保留",
+    "重复执行",
+    "受管更新与备份",
+    "自改内容冲突",
+    "写入失败回退",
+    "并发修改保护",
+    "旧非教师目录迁移保护",
+    "真实分发包安装",
+    "排除环境文件和密钥"
+  ],
+  "generic_skill_validation": {
+    "scope": "临时投影的公共字段及正文；目标平台额外字段由构建器检查",
+    "runtime_skill": "passed",
+    "setup_skill": "passed"
+  },
+  "teacher_content_observation": {
+    "environment": "独立助手读取当前Skill和虚构课件，无实际WorkBuddy",
+    "role": "课堂答疑准备",
+    "request": "准备三组A*课堂常见问题、教师参考回答和易错点",
+    "observed": [
+      "生成三组完整问答及讲解追问",
+      "没有要求选择模式或认证身份",
+      "提供教师参考回答，没有附加独立报告"
+    ],
+    "limitations": "不代表真实平台注册、原生委派或课程库正文检索"
+  },
+  "workbuddy_tests_executed": 0,
+  "workbuddy_registry": "not_executed",
+  "project_selector": "not_executed",
+  "native_delegation": "not_executed",
+  "live_retrieval": "not_executed",
+  "live_permissions": "not_executed"
 }

@@ -5,8 +5,8 @@
 | 字段 | 填什么 |
 | --- | --- |
 | task_id | 当前任务简短标识，可省略 |
-| course_mode / actor_role | 实际项目模式；当前主笔视角，身份不可核验时写未知 |
-| audience | 教师/学生/混合及学习基础 |
+| actor_role | 当前负责的专家或工作视角 |
+| audience | 本次材料的授课对象及学习基础 |
 | unit_id / objective | 用户指定章节和本次要完成的目标 |
 | discipline / duration | 专业背景与总分钟数，未指定则说明合理假设 |
 | allowed_collection / actions | 本次可读资料及可做动作，以实际授权为限 |

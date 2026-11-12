@@ -30,6 +30,7 @@ AGENT_IDS = (
     "ai-intro-course-tutor",
 )
 SKILL_ROOT = PurePosixPath(".codebuddy/skills") / SKILL_ID
+SIGNIN_SKILL_ROOT = PurePosixPath(".codebuddy/skills/workbuddy-auto-signin")
 RULE_PATH = PurePosixPath(".codebuddy/rules/ai-intro-course.md")
 RECEIPT_PATH = PurePosixPath(".codebuddy/ai-intro-course-installation.json")
 BACKUP_ROOT = PurePosixPath(".codebuddy/ai-intro-course-backups")
@@ -128,6 +129,33 @@ def source_files(source: Path) -> tuple[dict[str, bytes], str]:
             if not path.is_file():
                 raise InstallationError(f"安装来源不是普通文件：{rel}")
             files[rel] = path.read_bytes()
+    # The companion Skill is copied with the suite; no code from it is executed.
+    # Source checkouts keep it under addons/, delivered payloads use .codebuddy/.
+    candidates = [bounded_path(source, "addons/workbuddy-auto-signin"),
+                  bounded_path(source, SIGNIN_SKILL_ROOT)]
+    available = [path for path in candidates if path.exists()]
+    if len(available) > 1:
+        raise InstallationError("自动签到Skill存在两个来源，无法确定安装内容")
+    if available:
+        addon = available[0]
+        entry = addon / "SKILL.md"
+        if not entry.is_file() or not re.search(r"^name:\s*workbuddy-auto-signin\s*$",
+                                               entry.read_text(encoding="utf-8"), re.M):
+            raise InstallationError("自动签到Skill来源不完整或标识不匹配")
+        for current, directories, names in os.walk(addon, followlinks=False):
+            current_path = Path(current)
+            directories[:] = [name for name in directories if name not in {"__pycache__", ".git", "runtime-output"}]
+            for child in directories + names:
+                bounded_path(source, (current_path / child).relative_to(source).as_posix())
+            for filename in names:
+                if (filename.startswith(".env") or ".local." in filename
+                        or Path(filename).suffix.lower() not in {".md", ".json", ".py", ".ps1", ".txt"}):
+                    continue
+                path = current_path / filename
+                if not path.is_file():
+                    raise InstallationError(f"自动签到来源不是普通文件：{path.name}")
+                relative = SIGNIN_SKILL_ROOT / path.relative_to(addon).as_posix()
+                files[str(relative)] = path.read_bytes()
     return files, version[1]
 
 
@@ -137,7 +165,7 @@ def managed_relative(relative: str) -> bool:
     if relative in {f".codebuddy/agents/{name}.md" for name in AGENT_IDS}:
         return True
     rel = PurePosixPath(relative)
-    return SKILL_ROOT in rel.parents and ".." not in rel.parts
+    return any(root in rel.parents for root in (SKILL_ROOT, SIGNIN_SKILL_ROOT)) and ".." not in rel.parts
 
 
 def read_receipt(target: Path) -> tuple[dict[str, Any] | None, bytes | None]:
@@ -304,6 +332,7 @@ def install_project(source_root: Path | str, target: Path | str, mode: str = "te
         "retained_previous_files": retained,
         "receipt": str(RECEIPT_PATH),
         "backups": [],
+        "account_automation_modified": False,
         **UNVERIFIED,
     }
     if dry_run or (not changed and metadata_same):

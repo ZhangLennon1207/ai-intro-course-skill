@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "repository": "88lin/workbuddy-auto-signin",
+  "commit": "34048c1b9636c5a03af580d5e9221c8bbe0c1e6c",
+  "files": {
+    "signin.py": "f3cf601e0cda23b684b9d6079a41b5ff40a24e2ef18d61256036afafa02d5de5",
+    "install-windows.ps1": "77219b2084a04c006baebc7a3d8f0e0dd96a47e7005dfbed35f20f8f6ad7ce57",
+    "LICENSE.txt": "10d8eaa57b1d26c6ed73d22b7c75a0f9329b160e4dd5cd538538ea65399d2364"
+  }
+}

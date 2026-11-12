@@ -4,12 +4,13 @@
 
 ## 安装材料
 
-路径从安装Skill目录解析。先读 `assets/install-plan.json`，再核对实际文件；清单中的版本和路径为准。
+收到setup安装包时，路径从安装Skill目录解析。先读 `assets/install-plan.json`，再核对实际文件；清单中的版本和路径为准。
 
 | 位置 | 内容 |
 | --- | --- |
 | `assets/course-suite/.codebuddy/agents/` | 五个原生专家定义 |
 | `assets/course-suite/.codebuddy/skills/ai-intro-course/` | 唯一日常教学Skill及全部依赖 |
+| `assets/course-suite/.codebuddy/skills/workbuddy-auto-signin/` | 独立签到附加Skill、固定上游源码与任务安装器 |
 | `assets/course-suite/packaging/plugin.json` | 原生专家团描述 |
 | `assets/course-suite/configs/teacher-project.md` | 教师项目指令 |
 | `assets/packages/` | 清单artifacts字段指定的完整原生ZIP |
@@ -17,7 +18,7 @@
 
 五个稳定专家标识是 `ai-intro-course-team-lead`、`ai-intro-course-design`、`ai-intro-course-domain`、`ai-intro-course-assessment`、`ai-intro-course-tutor`。最后一位用于教师课堂答疑准备。日常Skill标识为 `ai-intro-course`；安装入口 `ai-intro-course-setup` 不绑定为日常教学能力。
 
-收到源码时，使用源码中实际存在的对应文件；尚未构建的载荷不能当成已有文件。不要从未知地址下载脚本填补缺口。
+收到GitHub源码时，仓库根目录下的 `.codebuddy/agents/`、`.codebuddy/skills/ai-intro-course/`、`addons/workbuddy-auto-signin/`、`packaging/plugin.json` 和 `configs/teacher-project.md` 是实际安装材料；本地文件安装器是 `tools/install_project.py`。例如从仓库根运行 `python tools/install_project.py --target "实际项目目录" --dry-run`，检查后执行。源码中的setup目录没有生成的assets或scripts，不能照搬安装包命令；没有构建ZIP时也不能虚构已有ZIP。原生管理工具只接受ZIP时，可取得有权访问的同版本Release包。不要从未知地址下载脚本填补缺口。
 
 ## 自动配置
 
@@ -27,6 +28,10 @@
 4. **配置五位专家。** 支持原生整套导入时使用完整专家团包；仅支持逐个创建时按五份定义完成并绑定实际Skill ID。支持团队管理时设置主管和四位成员；否则团队登记单列未完成，不用一个普通专家冒充团队。逐项回读定义与绑定。
 5. **关联教师项目。** 自动关联专家团或主管与教师助手。用户另选其他成员时按其要求处理，不强制全选。只有用户要求时才新建项目。保留原专家、技能、连接器和指令，使用增量操作；教师指令只更新本套件受管区段，不整体覆盖项目。
 6. **关联资料并读正文。** 使用用户提供或项目已有的有权入口，平台支持时自动关联空间/文档并读一份相关正文。未给入口可先完成安装；不能虚构URL、遍历题库测试安装，或把“关联成功”和目录读取当正文检索通过。
+7. **安装签到附加Skill。** 按清单 `companion_skills` 安装完整 `workbuddy-auto-signin`，需要ZIP时使用对应archive与哈希；独立登记，不给五位教师专家增加签到职责或默认绑定。源码位置为 `addons/workbuddy-auto-signin/`，分发载荷位置见表。缺少原生工具时，本地课程安装器会一并复制其项目Skill文件，仍须区分文件部署与平台登记。
+8. **按选择开启后台功能。** 先读取附加Skill的 `SKILL.md` 与 `references/usage.md`。说明它会读取本机WorkBuddy登录态，每天签到并运行成长中心，自动使用已有补登卡、抽奖机会和能量。用户此次已明确要求同时开启完整功能则直接继续；仅课程安装或文件下载请求不能作为账号操作授权，可用一次简短选择补齐。用户已明确拒绝或暂不开启时不再询问，保留现有后台配置；“先不开启”也不等于要求卸载旧任务。未开启或依赖缺失不妨碍课程安装完成。
+
+开启时从附加Skill目录先运行 `python scripts/manage_signin.py plan`，再运行 `python scripts/manage_signin.py install --mode signin-growth`，最后运行 `status` 回读。本套件使用归属保护的当前用户计划任务，不直接执行上游 `install-windows.ps1`，不自动运行签到。不要创建第二套WorkBuddy原生签到定时任务，不改已有上游任务，不索取或导出登录文件。只回报任务是否配置，真实签到结果另验。
 
 显示名称调整为“人工智能概论教师专家团”“人工智能概论教师助手”，不改变稳定标识。平台不支持改名时保留已登记名称，按实际ID复用；不能仅为改显示名称重复创建。
 
@@ -46,7 +51,7 @@ python scripts/install_project.py --source-root assets/course-suite --target "�
 
 安装器核对所有受管文件，保护用户修改并保留更新备份。写入失败时按实际恢复结果处理；返回 `recovery_required` 时报告路径与备份，不强行覆盖现状。完成后回读 `.codebuddy/ai-intro-course-installation.json` 和实际文件。原生文件工具可替代脚本，但必须遵循同样的归属、冲突与回读规则。
 
-项目文件部署不代表云端登记、项目绑定或选择器显示已完成。不要写全局配置，不改其他项目、不移动课程原件、不自动清理旧版。
+项目文件部署不代表云端登记、项目绑定或选择器显示已完成。不改其他项目、不移动课程原件、不自动清理旧版。课程安装不写全局设置；附加功能获准开启时，只按其说明创建当前用户的专属Windows任务和运行目录，不改系统安全设置。
 
 ## 核对并交接
 
@@ -65,7 +70,7 @@ python scripts/install_project.py --source-root assets/course-suite --target "�
 
 ```json
 {
-  "suite_version": "1.2.0",
+  "suite_version": "1.3.0",
   "status": "partial",
   "registered_resources": [],
   "registry_verified": false,

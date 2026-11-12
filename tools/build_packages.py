@@ -16,11 +16,12 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / '.codebuddy/skills/ai-intro-course'
 SETUP = ROOT / 'bootstrap/ai-intro-course-setup'
+SIGNIN = ROOT / 'addons/workbuddy-auto-signin'
 DIST = ROOT / 'dist'
 REQUIRED = {'name', 'display_name', 'display_name_en', 'description', 'description_zh',
             'description_en', 'version', 'author'}
 MATERIAL_SHARE_URL = re.compile(r'https?://(?:www\.)?workbuddy\.cn/space/[sd]/[A-Za-z0-9]{12,}')
-SOURCE_SUFFIXES = {'.md', '.json', '.py', '.txt', '.png', '.jpg', '.jpeg'}
+SOURCE_SUFFIXES = {'.md', '.json', '.py', '.ps1', '.txt', '.png', '.jpg', '.jpeg'}
 PRIVATE_DIRECTORIES = {'private', 'local', 'runtime-output', 'teacher-materials',
                        'teacher-answers', 'dist', '__pycache__', '.git'}
 
@@ -31,7 +32,7 @@ def publishable(relative: PurePosixPath) -> bool:
         return False
     if name.startswith('.env') or '.local.' in name or name.endswith('.local'):
         return False
-    return relative.suffix.casefold() in SOURCE_SUFFIXES or name == '.gitignore'
+    return relative.suffix.casefold() in SOURCE_SUFFIXES or name in {'.gitignore', '.gitattributes'}
 
 
 def metadata(path: Path) -> dict:
@@ -74,11 +75,18 @@ def validate_inputs() -> tuple[dict, str]:
     assert manifest['skills'] == ['./skills/ai-intro-course']
     assert not manifest.get('dependencies'), 'No external connector required by this suite'
 
-    for folder in (SKILL, SETUP):
+    for folder in (SKILL, SETUP, SIGNIN):
         fm = metadata(folder / 'SKILL.md')
         assert REQUIRED <= fm.keys(), f'Missing skill fields: {folder}'
         assert all(isinstance(fm[k], str) and fm[k].strip() for k in REQUIRED)
         assert fm['name'] == folder.name and fm['version'] == version
+
+    lock = json.loads((SIGNIN / 'upstream-lock.json').read_text(encoding='utf-8'))
+    assert lock['repository'] == '88lin/workbuddy-auto-signin'
+    assert lock['commit'] == '34048c1b9636c5a03af580d5e9221c8bbe0c1e6c'
+    assert set(lock['files']) == {'signin.py', 'install-windows.ps1', 'LICENSE.txt'}
+    for name, expected in lock['files'].items():
+        assert hashlib.sha256((SIGNIN / 'assets/upstream' / name).read_bytes()).hexdigest() == expected
 
     expected_agents = {Path(rel).stem for rel in manifest['agents']}
     actual_agents = list((ROOT / '.codebuddy/agents').glob('*.md'))
@@ -112,7 +120,7 @@ def check_bundle(files: dict[str, bytes]) -> int:
         assert '..' not in PurePosixPath(name).parts and not PurePosixPath(name).is_absolute()
         nested_package = name.startswith('assets/packages/') and name.endswith('.zip')
         assert publishable(PurePosixPath(name)) or nested_package, f'Non-distributable path: {name}'
-        if PurePosixPath(name).suffix in {'.md', '.json', '.py', '.txt'}:
+        if PurePosixPath(name).suffix in {'.md', '.json', '.py', '.ps1', '.txt'}:
             text = data.decode('utf-8')
             assert not MATERIAL_SHARE_URL.search(text), f'Populated materials URL: {name}'
             assert '\ufffd' not in text, name
@@ -150,12 +158,15 @@ def build() -> dict:
     runtime = read_files(SKILL)
     codebuddy = read_files(ROOT / '.codebuddy/agents', '.codebuddy/agents')
     codebuddy.update(read_files(SKILL, '.codebuddy/skills/ai-intro-course'))
+    signin = read_files(SIGNIN)
     payload = dict(codebuddy)
+    payload.update({'.codebuddy/skills/workbuddy-auto-signin/' + k: v for k, v in signin.items()})
     payload['configs/teacher-project.md'] = (ROOT / 'configs/teacher-project.md').read_bytes()
     for name in ('plugin.json', 'settings.json', 'setting.json'):
         payload['packaging/' + name] = (ROOT / 'packaging' / name).read_bytes()
     payload.update(read_files(ROOT / 'packaging/avatars', 'packaging/avatars'))
-    payload['USER_GUIDE.md'] = (ROOT / 'docs/user-guide.md').read_bytes()
+    payload['USER_GUIDE.md'] = (ROOT / 'docs/user-guide.md').read_text(encoding='utf-8').replace(
+        '../addons/workbuddy-auto-signin/', '.codebuddy/skills/workbuddy-auto-signin/').encode('utf-8')
 
     experts = []
     for m in manifest['members']:
@@ -187,6 +198,17 @@ def build() -> dict:
     # that requires a ZIP must not be given source-layout manifest paths alone.
     runtime_record = archive(f'ai-intro-course-{version}-workbuddy.zip', 'ai-intro-course', runtime)
     team_record = archive(f'ai-intro-course-team-{version}.zip', 'ai-intro-course-team', team)
+    signin_record = archive(f'workbuddy-auto-signin-{version}-workbuddy.zip', 'workbuddy-auto-signin', signin)
+    plan['companion_skills'] = [{
+        'id': 'workbuddy-auto-signin', 'name': metadata(SIGNIN / 'SKILL.md')['display_name'],
+        'source': '.codebuddy/skills/workbuddy-auto-signin',
+        'archive': 'assets/packages/' + signin_record['name'],
+        'sha256': signin_record['sha256'], 'install_skill_with_suite': True,
+        'bind_to_course_experts': False, 'enable_background_by_default': False,
+        'requires_account_automation_authorization': True,
+        'manager': '.codebuddy/skills/workbuddy-auto-signin/scripts/manage_signin.py',
+        'upstream_commit': '34048c1b9636c5a03af580d5e9221c8bbe0c1e6c'
+    }]
     plan['artifacts'] = {
         'runtime_skill_archive': 'assets/packages/' + runtime_record['name'],
         'runtime_skill_sha256': runtime_record['sha256'],
@@ -197,12 +219,12 @@ def build() -> dict:
     setup.update({'assets/course-suite/' + k: v for k, v in payload.items()})
     setup['assets/install-plan.json'] = (json.dumps(plan, ensure_ascii=False, indent=2) + '\n').encode('utf-8')
     setup['scripts/install_project.py'] = (ROOT / 'tools/install_project.py').read_bytes()
-    for record in (runtime_record, team_record):
+    for record in (runtime_record, team_record, signin_record):
         setup['assets/packages/' + record['name']] = (DIST / record['name']).read_bytes()
 
-    source = {name: (ROOT / name).read_bytes() for name in ('README.md', '.gitignore', 'requirements-dev.txt')}
+    source = {name: (ROOT / name).read_bytes() for name in ('README.md', '.gitignore', '.gitattributes', 'requirements-dev.txt')}
     source.update(codebuddy)
-    for folder in ('bootstrap', 'packaging', 'tools', 'docs', 'tests'):
+    for folder in ('bootstrap', 'packaging', 'tools', 'docs', 'tests', 'addons'):
         for name, data in read_files(ROOT / folder, folder).items():
             if '__pycache__' not in PurePosixPath(name).parts and not name.endswith('.pyc'):
                 source[name] = data
@@ -212,10 +234,13 @@ def build() -> dict:
         archive(f'ai-intro-course-setup-{version}.zip', 'ai-intro-course-setup', setup),
         team_record,
         runtime_record,
+        signin_record,
         archive(f'ai-intro-course-source-{version}.zip', 'ai-intro-course-skill', source)
     ]
     report = {'version': version, 'project_type': 'teacher', 'native_experts': 5, 'runtime_skills': 1,
               'setup_skills': 1, 'source_structure': 'passed', 'archives': records,
+              'companion_skills': 1, 'background_automation_default': 'disabled',
+              'signin_scheduled_tasks': 'not_executed', 'signin_live_account': 'not_executed',
               'workbuddy_registry': 'not_executed', 'project_selector': 'not_executed',
               'live_retrieval': 'not_executed', 'live_permissions': 'not_executed'}
     (DIST / 'build-report.json').write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')

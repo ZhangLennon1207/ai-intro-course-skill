@@ -31,6 +31,12 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(plan['project_type'], 'teacher')
             self.assertEqual(plan['project_config'], 'configs/teacher-project.md')
             self.assertEqual(plan['recommended_selection']['expert_ids'], ['ai-intro-course-team-lead'])
+            companion = plan['companion_skills'][0]
+            self.assertEqual(companion['id'], 'workbuddy-auto-signin')
+            self.assertIs(companion['install_skill_with_suite'], True)
+            self.assertIs(companion['enable_background_by_default'], False)
+            self.assertEqual(hashlib.sha256((setup / companion['archive']).read_bytes()).hexdigest(),
+                             companion['sha256'])
             payload = setup / plan['payload_root']
             self.assertFalse((payload / 'configs/student-project.md').exists())
             for name, expected in plan['file_hashes'].items():
@@ -54,6 +60,8 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
             result = json.loads(second.stdout)
             self.assertEqual(result['status'], 'filesystem_installed')
+            self.assertIs(result['account_automation_modified'], False)
+            self.assertTrue((target / '.codebuddy/skills/workbuddy-auto-signin/scripts/manage_signin.py').is_file())
             self.assertEqual(result['changed_files'], [])
             self.assertEqual(receipt.read_bytes(), before_receipt)
             for field in ('registry_verified', 'project_binding_verified', 'runtime_verified'):

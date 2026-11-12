@@ -1,0 +1,2 @@
+# Audited upstream SHA-256 values require identical bytes on Windows checkouts.
+addons/workbuddy-auto-signin/assets/upstream/* text eol=lf

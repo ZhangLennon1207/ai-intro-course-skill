@@ -61,6 +61,35 @@ class ProjectInstallerTests(unittest.TestCase):
         self.assertFalse(first["runtime_verified"])
         self.assertEqual(first["status"], "filesystem_installed")
 
+    def test_companion_skill_copies_without_running_or_copying_local_data(self):
+        addon = self.source / "addons/workbuddy-auto-signin"
+        self.write(addon / "SKILL.md", "---\nname: workbuddy-auto-signin\n---\n# Sign-in\n")
+        self.write(addon / "scripts/manage_signin.py", "raise RuntimeError('must never execute during course install')\n")
+        self.write(addon / "assets/upstream/LICENSE.txt", "Fictional license for copy test\n")
+        self.write(addon / ".env", "fictional secret\n")
+        self.write(addon / "session.local.json", "fictional session\n")
+        self.write(addon / "__pycache__/cache.pyc", "fictional bytecode\n")
+        self.write(addon / "signin.log", "fictional account result\n")
+        first = self.install()
+        installed = self.target / str(installer.SIGNIN_SKILL_ROOT)
+        self.assertTrue((installed / "scripts/manage_signin.py").is_file())
+        self.assertEqual({p.relative_to(installed).as_posix() for p in installed.rglob('*') if p.is_file()},
+                         {"SKILL.md", "scripts/manage_signin.py", "assets/upstream/LICENSE.txt"})
+        self.assertIs(first["account_automation_modified"], False)
+        self.assertEqual(self.install()["changed_files"], [])
+        (installed / "scripts/manage_signin.py").write_text("my changed script\n", encoding="utf-8")
+        with self.assertRaises(installer.InstallationConflict):
+            self.install()
+
+    def test_companion_payload_layout_is_supported_and_ambiguous_sources_rejected(self):
+        addon = self.source / str(installer.SIGNIN_SKILL_ROOT)
+        self.write(addon / "SKILL.md", "---\nname: workbuddy-auto-signin\n---\n# Companion\n")
+        self.install()
+        self.assertTrue((self.target / str(installer.SIGNIN_SKILL_ROOT) / "SKILL.md").is_file())
+        self.write(self.source / "addons/workbuddy-auto-signin/SKILL.md", "another source\n")
+        with self.assertRaises(installer.InstallationError):
+            self.install()
+
     def test_owned_update_backs_up_prior_content_and_installs_new_resources(self):
         self.install()
         relative = f".codebuddy/agents/{installer.AGENT_IDS[1]}.md"

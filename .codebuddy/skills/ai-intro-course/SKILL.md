@@ -5,7 +5,7 @@ display_name_en: Introduction to AI Teaching Assistant
 description: 面向《人工智能概论》任课教师的教学技能。基于课程资料完成备课、课堂活动、PPT提纲、实验设计、命题评价、专业案例和课堂答疑准备，在WorkBuddy教师项目中使用。
 description_zh: 教师通过一个入口调用课程资料和专家方法，完成备课、命题、案例与课堂答疑准备。
 description_en: Help AI course teachers prepare lessons, experiments, assessments, cases, and classroom explanations using authorized course materials.
-version: 1.2.0
+version: 1.3.0
 author: 人工智能概论课程组
 examples_zh:
   - 结合课程资料，为经管和文法类学生设计单元7的90分钟课程。

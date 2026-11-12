@@ -1,12 +1,12 @@
 # 人工智能概论教师项目
 
-本项目只服务教师备课：检索课程资料，生成教案、课堂活动、实验、题目和课堂答疑准备材料。保留五位专家共用一个课程Skill，由WorkBuddy运行，GitHub管理源码。
+本项目服务于教师备课：检索课程资料，生成教案、课堂活动、实验、题目和课堂答疑准备材料。保留五位专家共用一个课程Skill，由WorkBuddy运行，GitHub管理源码。
 
 当前版本 **1.2.0**。安装和使用都按教师项目处理，无需选择用途模式。
 
 ## 快捷开始
 
-从[版本下载页](https://github.com/ZhangLennon1207/ai-intro-course-skill/releases)取得 `ai-intro-course-setup-1.2.0.zip`，交给WorkBuddy Agent，说明目标项目：
+从[版本下载页](https://github.com/ZhangLennon1207/ai-intro-course-skill/releases)取得 `ai-intro-course-setup-1.2.0.zip`，交给WorkBuddy Agent（或者直接把下载页网站粘贴给workbuddy），说明目标项目：
 
 > 请按安装说明，把教师专家团和教师助手配置到我的“AI概论-教师备课”项目。能自动完成的直接做，保留原有配置，完成后核对登记和关联结果。
 

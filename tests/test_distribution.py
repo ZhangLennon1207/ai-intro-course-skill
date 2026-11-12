@@ -31,13 +31,21 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(plan['project_type'], 'teacher')
             self.assertEqual(plan['project_config'], 'configs/teacher-project.md')
             self.assertEqual(plan['recommended_selection']['expert_ids'], ['ai-intro-course-team-lead'])
-            companion = plan['companion_skills'][0]
-            self.assertEqual(companion['id'], 'workbuddy-auto-signin')
-            self.assertIs(companion['install_skill_with_suite'], True)
-            self.assertIs(companion['enable_background_by_default'], False)
-            self.assertEqual(hashlib.sha256((setup / companion['archive']).read_bytes()).hexdigest(),
-                             companion['sha256'])
+            self.assertEqual(plan['recommended_selection']['skill_ids'], ['ai-intro-course', 'ai-frontier-weekly'])
+            companions = {item['id']: item for item in plan['companion_skills']}
+            self.assertEqual(set(companions), {'workbuddy-auto-signin', 'ai-frontier-weekly'})
+            for companion in companions.values():
+                self.assertIs(companion['install_skill_with_suite'], True)
+                self.assertIs(companion['bind_to_course_experts'], False)
+                self.assertIs(companion['enable_background_by_default'], False)
+                self.assertEqual(hashlib.sha256((setup / companion['archive']).read_bytes()).hexdigest(),
+                                 companion['sha256'])
+            weekly = companions['ai-frontier-weekly']
+            self.assertIs(weekly['enable_publication_by_default'], False)
+            self.assertEqual(weekly['scheduler'], 'workbuddy_native')
             payload = setup / plan['payload_root']
+            for key in ('schedule_template', 'task_prompt'):
+                self.assertTrue((payload / weekly[key]).is_file())
             self.assertFalse((payload / 'configs/student-project.md').exists())
             for name, expected in plan['file_hashes'].items():
                 self.assertEqual(hashlib.sha256((payload / name).read_bytes()).hexdigest(), expected)
@@ -61,11 +69,24 @@ class DistributionTests(unittest.TestCase):
             result = json.loads(second.stdout)
             self.assertEqual(result['status'], 'filesystem_installed')
             self.assertIs(result['account_automation_modified'], False)
+            self.assertIs(result['weekly_schedule_modified'], False)
+            self.assertIs(result['publication_modified'], False)
             self.assertTrue((target / '.codebuddy/skills/workbuddy-auto-signin/scripts/manage_signin.py').is_file())
+            self.assertTrue((target / '.codebuddy/skills/ai-frontier-weekly/assets/weekly-report-template.html').is_file())
+            self.assertTrue((target / '.codebuddy/skills/ai-frontier-weekly/requirements.txt').is_file())
             self.assertEqual(result['changed_files'], [])
             self.assertEqual(receipt.read_bytes(), before_receipt)
             for field in ('registry_verified', 'project_binding_verified', 'runtime_verified'):
                 self.assertIs(result[field], False)
+            # An actual delivered HTML file is protected by the same ownership
+            # check as expert prompts; an update must preserve teacher edits.
+            edited = target / '.codebuddy/skills/ai-frontier-weekly/assets/weekly-report-template.html'
+            custom = b'<!doctype html><title>Teacher custom layout</title>'
+            edited.write_bytes(custom)
+            rejected = subprocess.run(command, text=True, capture_output=True, encoding='utf-8')
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertEqual(edited.read_bytes(), custom)
+            self.assertEqual(receipt.read_bytes(), before_receipt)
 
 
 if __name__ == '__main__':

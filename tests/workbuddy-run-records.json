@@ -1,5 +1,5 @@
 {
-  "skill_version": "1.3.0",
+  "skill_version": "1.4.0",
   "project_type": "teacher",
   "environment": "教师项目的WorkBuddy实机安装与运行尚未验证",
   "executed_count": 0,
@@ -10,7 +10,7 @@
   "note": "仅记录WorkBuddy实机执行；文件检查、自动化脚本测试和历史离线观察分别记录。",
   "records": [],
   "record_schema": {
-    "case_id": "E01..E10或S01..S08",
+    "case_id": "E01..E10或S01..S11",
     "timestamp": "实际执行时间",
     "workbuddy_version": "实际客户端版本",
     "project": "实际教师项目名称或标识",

@@ -26,3 +26,10 @@ Thumbs.db
 dist/
 .codebuddy/ai-intro-course-installation.json
 .codebuddy/ai-intro-course-backups/
+
+# 周报运行产物、教师信源与本地部署状态不进入源码
+outputs/
+weekly-site/
+参考资料/周速递/
+AI前沿周速递-*.md
+AI前沿周速递-*.html

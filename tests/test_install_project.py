@@ -90,6 +90,56 @@ class ProjectInstallerTests(unittest.TestCase):
         with self.assertRaises(installer.InstallationError):
             self.install()
 
+    def test_weekly_skill_copies_templates_dependencies_and_keeps_local_data_out(self):
+        addon = self.source / "addons/ai-frontier-weekly"
+        self.write(addon / "SKILL.md", "---\nname: ai-frontier-weekly\n---\n# Weekly\n")
+        self.write(addon / "assets/weekly-report-template.html", "<!doctype html><title>周报模板</title>\n")
+        self.write(addon / "scripts/fetch_images.py", "raise RuntimeError('must not execute during install')\n")
+        self.write(addon / "requirements.txt", "Pillow\n")
+        self.write(addon / "assets/schedule-template.json", '{"enabled":false}\n')
+        for name in (".ENV", "site.local.html", "private/answer.md", "local/site.json", "__pycache__/cache.pyc"):
+            self.write(addon / name, "fictional local-only content\n")
+        result = self.install()
+        installed = self.target / str(installer.WEEKLY_SKILL_ROOT)
+        self.assertEqual({p.relative_to(installed).as_posix() for p in installed.rglob('*') if p.is_file()},
+                         {"SKILL.md", "assets/weekly-report-template.html", "scripts/fetch_images.py",
+                          "requirements.txt", "assets/schedule-template.json"})
+        self.assertIs(result["weekly_schedule_modified"], False)
+        self.assertIs(result["publication_modified"], False)
+        receipt = self.target / str(installer.RECEIPT_PATH)
+        original_receipt = receipt.read_bytes()
+        self.assertEqual(self.install()["changed_files"], [])
+        self.assertEqual(receipt.read_bytes(), original_receipt)
+        template = installed / "assets/weekly-report-template.html"
+        template.write_text("teacher custom layout\n", encoding="utf-8")
+        with self.assertRaises(installer.InstallationConflict):
+            self.install()
+        self.assertEqual(template.read_text(encoding="utf-8"), "teacher custom layout\n")
+        self.assertEqual(receipt.read_bytes(), original_receipt)
+
+    def test_weekly_payload_layout_and_both_companions_are_preserved(self):
+        for skill_id, root in installer.COMPANION_SKILL_ROOTS.items():
+            self.write(self.source / str(root) / "SKILL.md", f"---\nname: {skill_id}\n---\n# Companion\n")
+        self.install()
+        for root in installer.COMPANION_SKILL_ROOTS.values():
+            self.assertTrue((self.target / str(root) / "SKILL.md").is_file())
+        self.write(self.source / "addons/ai-frontier-weekly/SKILL.md", "ambiguous duplicate\n")
+        with self.assertRaises(installer.InstallationError):
+            self.install()
+
+    def test_weekly_template_update_preserves_a_managed_backup(self):
+        addon = self.source / "addons/ai-frontier-weekly"
+        self.write(addon / "SKILL.md", "---\nname: ai-frontier-weekly\n---\n# Weekly\n")
+        self.write(addon / "assets/weekly-report-template.html", "old weekly layout\n")
+        self.install()
+        relative = str(installer.WEEKLY_SKILL_ROOT / "assets/weekly-report-template.html")
+        self.write(addon / "assets/weekly-report-template.html", "new weekly layout\n")
+        result = self.install()
+        self.assertEqual((self.target / relative).read_text(encoding="utf-8"), "new weekly layout\n")
+        backups = [self.target / name for name in result["backups"] if name.endswith(relative)]
+        self.assertEqual(len(backups), 1)
+        self.assertEqual(backups[0].read_text(encoding="utf-8"), "old weekly layout\n")
+
     def test_owned_update_backs_up_prior_content_and_installs_new_resources(self):
         self.install()
         relative = f".codebuddy/agents/{installer.AGENT_IDS[1]}.md"

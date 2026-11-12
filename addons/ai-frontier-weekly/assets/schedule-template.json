@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "kind": "workbuddy-native-automation-intent",
+  "suite_version": "1.4.0",
+  "component_id": "ai-frontier-weekly",
+  "name": "AI前沿周速递",
+  "skill_ids": ["ai-frontier-weekly"],
+  "suggested_schedule": {"frequency": "weekly", "weekday": "MON", "time": "08:00", "timezone": "Asia/Shanghai"},
+  "schedule_is_example": true,
+  "create_on_skill_install": false,
+  "publication_enabled": false,
+  "message_push_enabled": false,
+  "preferred_scope": "current_teacher_project",
+  "cloud_compatibility": "Verify that the installed Skill, project configuration, history, dependencies and output storage are accessible in the cloud; local paths alone are insufficient.",
+  "prompt_file": "weekly-task-prompt.md",
+  "platform_api_payload": false,
+  "registered_task_id": null
+}

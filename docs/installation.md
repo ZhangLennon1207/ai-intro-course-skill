@@ -6,7 +6,7 @@
 
 ## 本地项目安装
 
-没有原生管理工具时，可将源码的 `.codebuddy/agents/`、完整课程Skill及随附签到Skill部署到明确指定的项目目录。脚本只依赖Python标准库：
+没有原生管理工具时，可将源码的 `.codebuddy/agents/`、完整课程Skill及周报、签到Skill部署到明确指定的项目目录。文件安装脚本只依赖Python标准库；周报配图处理另有可选Pillow依赖：
 
 ```text
 python tools/install_project.py --target "实际项目目录" --dry-run
@@ -18,19 +18,22 @@ python tools/install_project.py --target "实际项目目录" --dry-run
 
 本地安装器一并复制签到Skill，但不执行其代码、不读取登录凭据、不注册Windows任务。用户要求同时开启时，安装Agent再按[签到说明](../addons/workbuddy-auto-signin/references/usage.md)调用其管理脚本，核对后独立记录结果。不要直接运行上游覆盖固定名称任务的安装器，也不要重复创建WorkBuddy原生签到任务。
 
+周报的脚本、HTML模板、信源兜底及定时提示模板也一并安装。该过程不联网生成新闻、不安装Pillow、不创建周报定时任务、不发布。用户明确要求定期生成时，按[周报说明](../addons/ai-frontier-weekly/references/workbuddy-setup.md)接入WorkBuddy原生任务；没有实际工具时不把JSON模板当登记。原生项目推荐关联教师助手与周报Skill，专家仍只固定绑定教学Skill。
+
 ## 构建交付包
 
 开发环境安装 `requirements-dev.txt` 中的依赖，运行 `python tools/build_packages.py`，在 `dist/` 生成：
 
 | 文件 | 用途 |
 | --- | --- |
-| `ai-intro-course-setup-1.3.0.zip` | 默认交付，包含教师项目、签到Skill、安装说明及各原生ZIP |
-| `ai-intro-course-team-1.3.0.zip` | 开放平台格式的教师专家团资产包 |
-| `ai-intro-course-1.3.0-workbuddy.zip` | 单独教学Skill，供真实技能管理工具登记 |
-| `workbuddy-auto-signin-1.3.0-workbuddy.zip` | 独立的签到与成长中心Skill |
-| `ai-intro-course-source-1.3.0.zip` | 排除本地配置和课程原件的源码 |
+| `ai-intro-course-setup-1.4.0.zip` | 默认交付，含教师项目、周报与签到、完整说明和独立ZIP |
+| `ai-intro-course-team-1.4.0.zip` | 开放平台格式的教师专家团资产包 |
+| `ai-intro-course-1.4.0-workbuddy.zip` | 单独教学Skill |
+| `ai-frontier-weekly-1.4.0-workbuddy.zip` | 独立周报Skill、模板、脚本及原生定时配置说明 |
+| `workbuddy-auto-signin-1.4.0-workbuddy.zip` | 独立的签到与成长中心Skill |
+| `ai-intro-course-source-1.4.0.zip` | 排除本地配置和课程原件的源码 |
 
-专家团原生ZIP仍只有一个共享教学Skill；它不是完整快捷安装包。要一起取得签到附加功能，应使用setup包或另外安装签到Skill包。打包器校验固定上游提交和文件哈希，保留许可，不联网安装或执行签到。
+专家团原生ZIP仍只有一个共享教学Skill；它不是完整快捷安装包。要一起取得周报与签到，应使用setup包或分别安装独立Skill包。打包器校验完整依赖与固定签到上游，保留许可，不联网安装或执行账号操作。
 
 GitHub更新不会自动同步到已安装WorkBuddy；使用新包发起更新并复测登记、关联和正文读取。
 

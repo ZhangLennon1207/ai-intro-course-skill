@@ -1,6 +1,6 @@
 {
   "suite": "ai-intro-course-workbuddy-acceptance",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "project_type": "teacher",
   "status": "not_executed_in_workbuddy",
   "note": "只验证教师项目的课程资料检索与教学准备。资料现状以实际正文为准；所有用例尚未在WorkBuddy执行。",

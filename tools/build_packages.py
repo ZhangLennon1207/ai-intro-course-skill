@@ -17,11 +17,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / '.codebuddy/skills/ai-intro-course'
 SETUP = ROOT / 'bootstrap/ai-intro-course-setup'
 SIGNIN = ROOT / 'addons/workbuddy-auto-signin'
+WEEKLY = ROOT / 'addons/ai-frontier-weekly'
+COMPANIONS = (SIGNIN, WEEKLY)
 DIST = ROOT / 'dist'
 REQUIRED = {'name', 'display_name', 'display_name_en', 'description', 'description_zh',
             'description_en', 'version', 'author'}
 MATERIAL_SHARE_URL = re.compile(r'https?://(?:www\.)?workbuddy\.cn/space/[sd]/[A-Za-z0-9]{12,}')
-SOURCE_SUFFIXES = {'.md', '.json', '.py', '.ps1', '.txt', '.png', '.jpg', '.jpeg'}
+SOURCE_SUFFIXES = {'.md', '.html', '.json', '.py', '.ps1', '.txt', '.png', '.jpg', '.jpeg'}
 PRIVATE_DIRECTORIES = {'private', 'local', 'runtime-output', 'teacher-materials',
                        'teacher-answers', 'dist', '__pycache__', '.git'}
 
@@ -75,7 +77,7 @@ def validate_inputs() -> tuple[dict, str]:
     assert manifest['skills'] == ['./skills/ai-intro-course']
     assert not manifest.get('dependencies'), 'No external connector required by this suite'
 
-    for folder in (SKILL, SETUP, SIGNIN):
+    for folder in (SKILL, SETUP, *COMPANIONS):
         fm = metadata(folder / 'SKILL.md')
         assert REQUIRED <= fm.keys(), f'Missing skill fields: {folder}'
         assert all(isinstance(fm[k], str) and fm[k].strip() for k in REQUIRED)
@@ -114,19 +116,38 @@ def validate_inputs() -> tuple[dict, str]:
     return manifest, version
 
 
+def markdown_outside_fences(text: str) -> str:
+    """Code examples contain literal paths, not resource links to resolve."""
+    output = []
+    marker = ''
+    length = 0
+    for line in text.splitlines():
+        fence = re.match(r'^\s*(`{3,}|~{3,})(.*)$', line)
+        if fence:
+            run, tail = fence.groups()
+            if not marker:
+                marker, length = run[0], len(run)
+            elif run[0] == marker and len(run) >= length and not tail.strip():
+                marker = ''
+            continue
+        if not marker:
+            output.append(line)
+    return '\n'.join(output)
+
+
 def check_bundle(files: dict[str, bytes]) -> int:
     links = 0
     for name, data in files.items():
         assert '..' not in PurePosixPath(name).parts and not PurePosixPath(name).is_absolute()
         nested_package = name.startswith('assets/packages/') and name.endswith('.zip')
         assert publishable(PurePosixPath(name)) or nested_package, f'Non-distributable path: {name}'
-        if PurePosixPath(name).suffix in {'.md', '.json', '.py', '.ps1', '.txt'}:
+        if PurePosixPath(name).suffix in {'.md', '.html', '.json', '.py', '.ps1', '.txt'}:
             text = data.decode('utf-8')
             assert not MATERIAL_SHARE_URL.search(text), f'Populated materials URL: {name}'
             assert '\ufffd' not in text, name
         if not name.endswith('.md'):
             continue
-        for target in re.findall(r'\]\(([^)]+)\)', data.decode('utf-8')):
+        for target in re.findall(r'\]\(([^)]+)\)', markdown_outside_fences(data.decode('utf-8'))):
             if re.match(r'^[a-z][a-z0-9+.-]*:', target, re.I) or target.startswith('#'):
                 continue
             target = unquote(target.split('#', 1)[0].strip('<>'))
@@ -158,15 +179,18 @@ def build() -> dict:
     runtime = read_files(SKILL)
     codebuddy = read_files(ROOT / '.codebuddy/agents', '.codebuddy/agents')
     codebuddy.update(read_files(SKILL, '.codebuddy/skills/ai-intro-course'))
-    signin = read_files(SIGNIN)
+    companion_files = {folder.name: read_files(folder) for folder in COMPANIONS}
     payload = dict(codebuddy)
-    payload.update({'.codebuddy/skills/workbuddy-auto-signin/' + k: v for k, v in signin.items()})
+    for skill_id, files in companion_files.items():
+        payload.update({f'.codebuddy/skills/{skill_id}/' + k: v for k, v in files.items()})
     payload['configs/teacher-project.md'] = (ROOT / 'configs/teacher-project.md').read_bytes()
     for name in ('plugin.json', 'settings.json', 'setting.json'):
         payload['packaging/' + name] = (ROOT / 'packaging' / name).read_bytes()
     payload.update(read_files(ROOT / 'packaging/avatars', 'packaging/avatars'))
-    payload['USER_GUIDE.md'] = (ROOT / 'docs/user-guide.md').read_text(encoding='utf-8').replace(
-        '../addons/workbuddy-auto-signin/', '.codebuddy/skills/workbuddy-auto-signin/').encode('utf-8')
+    guide = (ROOT / 'docs/user-guide.md').read_text(encoding='utf-8')
+    for folder in COMPANIONS:
+        guide = guide.replace(f'../addons/{folder.name}/', f'.codebuddy/skills/{folder.name}/')
+    payload['USER_GUIDE.md'] = guide.encode('utf-8')
 
     experts = []
     for m in manifest['members']:
@@ -182,7 +206,7 @@ def build() -> dict:
             'name': metadata(SKILL / 'SKILL.md')['display_name']},
         'experts': experts, 'team_manifest': 'packaging/plugin.json',
         'project_type': 'teacher', 'project_config': 'configs/teacher-project.md',
-        'recommended_selection': {'expert_ids': [manifest['agentName']], 'skill_ids': ['ai-intro-course']},
+        'recommended_selection': {'expert_ids': [manifest['agentName']], 'skill_ids': ['ai-intro-course', 'ai-frontier-weekly']},
         'local_installer': 'scripts/install_project.py',
         'registration': 'Prefer actual native management tools; filesystem installation does not verify selectors.',
         'file_hashes': {path: hashlib.sha256(data).hexdigest() for path, data in sorted(payload.items())}
@@ -198,7 +222,12 @@ def build() -> dict:
     # that requires a ZIP must not be given source-layout manifest paths alone.
     runtime_record = archive(f'ai-intro-course-{version}-workbuddy.zip', 'ai-intro-course', runtime)
     team_record = archive(f'ai-intro-course-team-{version}.zip', 'ai-intro-course-team', team)
-    signin_record = archive(f'workbuddy-auto-signin-{version}-workbuddy.zip', 'workbuddy-auto-signin', signin)
+    companion_records = {
+        skill_id: archive(f'{skill_id}-{version}-workbuddy.zip', skill_id, files)
+        for skill_id, files in companion_files.items()
+    }
+    signin_record = companion_records['workbuddy-auto-signin']
+    weekly_record = companion_records['ai-frontier-weekly']
     plan['companion_skills'] = [{
         'id': 'workbuddy-auto-signin', 'name': metadata(SIGNIN / 'SKILL.md')['display_name'],
         'source': '.codebuddy/skills/workbuddy-auto-signin',
@@ -208,7 +237,20 @@ def build() -> dict:
         'requires_account_automation_authorization': True,
         'manager': '.codebuddy/skills/workbuddy-auto-signin/scripts/manage_signin.py',
         'upstream_commit': '34048c1b9636c5a03af580d5e9221c8bbe0c1e6c'
+    }, {
+        'id': 'ai-frontier-weekly', 'name': metadata(WEEKLY / 'SKILL.md')['display_name'],
+        'source': '.codebuddy/skills/ai-frontier-weekly',
+        'archive': 'assets/packages/' + weekly_record['name'],
+        'sha256': weekly_record['sha256'], 'install_skill_with_suite': True,
+        'bind_to_course_experts': False, 'enable_background_by_default': False,
+        'enable_publication_by_default': False, 'associate_with_teacher_project': True, 'scheduler': 'workbuddy_native',
+        'schedule_template': '.codebuddy/skills/ai-frontier-weekly/assets/schedule-template.json',
+        'task_prompt': '.codebuddy/skills/ai-frontier-weekly/assets/weekly-task-prompt.md'
     }]
+    for companion in plan['companion_skills']:
+        for key in ('schedule_template', 'task_prompt'):
+            if key in companion:
+                assert companion[key] in payload, f'Missing companion resource: {companion[key]}'
     plan['artifacts'] = {
         'runtime_skill_archive': 'assets/packages/' + runtime_record['name'],
         'runtime_skill_sha256': runtime_record['sha256'],
@@ -219,7 +261,7 @@ def build() -> dict:
     setup.update({'assets/course-suite/' + k: v for k, v in payload.items()})
     setup['assets/install-plan.json'] = (json.dumps(plan, ensure_ascii=False, indent=2) + '\n').encode('utf-8')
     setup['scripts/install_project.py'] = (ROOT / 'tools/install_project.py').read_bytes()
-    for record in (runtime_record, team_record, signin_record):
+    for record in (runtime_record, team_record, *companion_records.values()):
         setup['assets/packages/' + record['name']] = (DIST / record['name']).read_bytes()
 
     source = {name: (ROOT / name).read_bytes() for name in ('README.md', '.gitignore', '.gitattributes', 'requirements-dev.txt')}
@@ -234,12 +276,13 @@ def build() -> dict:
         archive(f'ai-intro-course-setup-{version}.zip', 'ai-intro-course-setup', setup),
         team_record,
         runtime_record,
-        signin_record,
+        *companion_records.values(),
         archive(f'ai-intro-course-source-{version}.zip', 'ai-intro-course-skill', source)
     ]
     report = {'version': version, 'project_type': 'teacher', 'native_experts': 5, 'runtime_skills': 1,
               'setup_skills': 1, 'source_structure': 'passed', 'archives': records,
-              'companion_skills': 1, 'background_automation_default': 'disabled',
+              'companion_skills': len(COMPANIONS), 'background_automation_default': 'disabled',
+              'weekly_native_schedule': 'not_executed', 'weekly_publication': 'not_executed',
               'signin_scheduled_tasks': 'not_executed', 'signin_live_account': 'not_executed',
               'workbuddy_registry': 'not_executed', 'project_selector': 'not_executed',
               'live_retrieval': 'not_executed', 'live_permissions': 'not_executed'}

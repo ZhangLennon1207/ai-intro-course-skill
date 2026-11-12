@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 前沿周速递 · {{ISSUE_DATE}}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+     background:#f5f6f8;color:#1f2328;line-height:1.75;font-size:15px}
+.page{max-width:820px;margin:0 auto;background:#fff;padding:48px 56px 64px}
+.hd{border-bottom:2px solid #1f2328;padding-bottom:20px;margin-bottom:8px}
+.hd h1{font-size:26px;font-weight:600;letter-spacing:-.01em}
+.hd .meta{font-size:13px;color:#6b7280;margin-top:8px}
+.hd .meta span{margin-right:16px}
+.intro{font-size:13px;color:#4b5563;background:#f9fafb;border-left:3px solid #d1d5db;
+       padding:12px 16px;margin:20px 0 32px;border-radius:0 6px 6px 0}
+h2.sec{font-size:16px;font-weight:600;margin:34px 0 4px;padding-left:12px;border-left:4px solid #2563eb}
+.secsub{font-size:12.5px;color:#6b7280;margin:0 0 16px 16px}
+.entry{border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;margin-bottom:14px;page-break-inside:avoid}
+.entry .t{font-size:15.5px;font-weight:600;line-height:1.5;margin-bottom:6px}
+.entry .t .no{color:#9ca3af;font-weight:400;margin-right:8px;font-size:13px}
+.entry .tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:4px;margin-bottom:8px}
+.tag.ok{background:#dcfce7;color:#166534}
+.tag.t1{background:#ede9fe;color:#5b21b6}
+.tag.m1{background:#dbeafe;color:#1e40af}
+.tag.m2{background:#fef3c7;color:#92400e}
+.entry .f{font-size:14px;color:#374151;margin-bottom:10px}
+.fig{margin:12px 0;page-break-inside:avoid}
+.fig img{width:100%;border-radius:8px;border:1px solid #e5e7eb;display:block;background:#f9fafb}
+.fig figcaption{font-size:11.5px;color:#6b7280;margin-top:6px;line-height:1.6}
+.fig figcaption b{font-weight:600;color:#4b5563}
+.entry .why{font-size:13px;color:#4b5563;padding-left:10px;border-left:2px solid #9ca3af;margin-bottom:10px}
+.entry .why b{font-weight:600;color:#6b7280;font-size:12px;margin-right:6px}
+.entry .q{font-size:13.5px;color:#1e40af;background:#f8fafc;border-radius:6px;padding:10px 12px}
+.entry .q b{font-weight:600;color:#6b7280;font-size:12px;display:block;margin-bottom:4px}
+.entry .s{font-size:12px;color:#6b7280;margin-top:10px;padding-top:8px;border-top:1px dashed #e5e7eb}
+.entry .s a{color:#2563eb;text-decoration:none;word-break:break-all}
+.doubt{margin-top:36px;border:1px dashed #d97706;border-radius:10px;padding:18px 20px;background:#fffbeb}
+.doubt h3{font-size:14px;font-weight:600;color:#92400e;margin-bottom:8px}
+.doubt p{font-size:12.5px;color:#78350f;margin-bottom:12px}
+.doubt li{font-size:13px;color:#374151;margin-bottom:6px}
+.doubt li b{color:#92400e}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid #e5e7eb;font-size:12px;color:#9ca3af;line-height:1.7}
+@media print{
+  body{background:#fff;font-size:11.5pt}
+  .page{max-width:none;padding:0}
+  .entry{page-break-inside:avoid}
+  h2.sec{page-break-after:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hd">
+    <h1>AI 前沿周速递</h1>
+    <div class="meta"><span>期号：{{ISSUE_DATE}}</span><span>覆盖：{{WINDOW_AND_TIMEZONE}}</span><span>检索于：{{FETCHED_AT}}</span><span>面向：《人工智能概论》授课教师</span></div>
+  </div>
+  <div class="intro">{{本期窗口、条数和覆盖缺口。此模板没有已核实新闻，交付前替换所有占位。}}</div>
+  <h2 class="sec">计算机 / 电子信息类</h2>
+  <p class="secsub">面向计算机、电子信息、自动化等专业的课堂材料</p>
+  <!-- 按实际合格条目复制entry；不足时说明原因，不能把占位交付为新闻。 -->
+  <div class="entry">
+    <div class="t"><span class="no">1</span>{{第1类事实标题}}</div>
+    <span class="tag t1">{{T1/T2与实际印证状态}}</span>
+    <div class="f">{{已核对的事件日期、主体、事实与必要限制}}</div>
+    <!-- 有经核对且符合使用范围的本地图时再加入figure，否则不保留空img。 -->
+    <div class="why"><b>对本专业的意义</b>{{具体课堂案例或知识点，作为教学分析}}</div>
+    <div class="q"><b>课堂讨论点</b><ol><li>{{讨论问题一}}</li><li>{{讨论问题二}}</li></ol></div>
+    <div class="s">信源：{{真实等级与是否交叉印证}}　来源：<a href="{{SOURCE_URL_1}}">{{原文标题与日期}}</a></div>
+  </div>
+  <h2 class="sec">其他理工类</h2>
+  <p class="secsub">面向机械、材料、生医工、化工等专业的课堂材料</p>
+  <!-- 按实际合格条目复制entry；不足时说明原因，不能把占位交付为新闻。 -->
+  <div class="entry">
+    <div class="t"><span class="no">1</span>{{第2类事实标题}}</div>
+    <span class="tag t1">{{T1/T2与实际印证状态}}</span>
+    <div class="f">{{已核对的事件日期、主体、事实与必要限制}}</div>
+    <!-- 有经核对且符合使用范围的本地图时再加入figure，否则不保留空img。 -->
+    <div class="why"><b>对本专业的意义</b>{{具体课堂案例或知识点，作为教学分析}}</div>
+    <div class="q"><b>课堂讨论点</b><ol><li>{{讨论问题一}}</li><li>{{讨论问题二}}</li></ol></div>
+    <div class="s">信源：{{真实等级与是否交叉印证}}　来源：<a href="{{SOURCE_URL_2}}">{{原文标题与日期}}</a></div>
+  </div>
+  <h2 class="sec">经管 / 文法类</h2>
+  <p class="secsub">面向经管、法学、新闻传播等专业的课堂材料</p>
+  <!-- 按实际合格条目复制entry；不足时说明原因，不能把占位交付为新闻。 -->
+  <div class="entry">
+    <div class="t"><span class="no">1</span>{{第3类事实标题}}</div>
+    <span class="tag t1">{{T1/T2与实际印证状态}}</span>
+    <div class="f">{{已核对的事件日期、主体、事实与必要限制}}</div>
+    <!-- 有经核对且符合使用范围的本地图时再加入figure，否则不保留空img。 -->
+    <div class="why"><b>对本专业的意义</b>{{具体课堂案例或知识点，作为教学分析}}</div>
+    <div class="q"><b>课堂讨论点</b><ol><li>{{讨论问题一}}</li><li>{{讨论问题二}}</li></ol></div>
+    <div class="s">信源：{{真实等级与是否交叉印证}}　来源：<a href="{{SOURCE_URL_3}}">{{原文标题与日期}}</a></div>
+  </div>
+  <h2 class="sec">艺术 / 外语类</h2>
+  <p class="secsub">面向艺术、设计、外语等专业的课堂材料</p>
+  <!-- 按实际合格条目复制entry；不足时说明原因，不能把占位交付为新闻。 -->
+  <div class="entry">
+    <div class="t"><span class="no">1</span>{{第4类事实标题}}</div>
+    <span class="tag t1">{{T1/T2与实际印证状态}}</span>
+    <div class="f">{{已核对的事件日期、主体、事实与必要限制}}</div>
+    <!-- 有经核对且符合使用范围的本地图时再加入figure，否则不保留空img。 -->
+    <div class="why"><b>对本专业的意义</b>{{具体课堂案例或知识点，作为教学分析}}</div>
+    <div class="q"><b>课堂讨论点</b><ol><li>{{讨论问题一}}</li><li>{{讨论问题二}}</li></ol></div>
+    <div class="s">信源：{{真实等级与是否交叉印证}}　来源：<a href="{{SOURCE_URL_4}}">{{原文标题与日期}}</a></div>
+  </div>
+  <footer>
+    本简报基于本期实际检索的原文生成，事实与教学分析分开呈现。<br>
+    本期配图情况：{{正文条数、配图条数与未配原因}}。<br>
+    信源覆盖：{{未取得正文与未检索到合格更新分别说明}}。<br>
+    自动化产出仅为原材料，最终采用与否由授课教师判定。
+  </footer>
+</div>
+</body>
+</html>

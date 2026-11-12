@@ -11,6 +11,7 @@
 | `assets/course-suite/.codebuddy/agents/` | 五个原生专家定义 |
 | `assets/course-suite/.codebuddy/skills/ai-intro-course/` | 唯一日常教学Skill及全部依赖 |
 | `assets/course-suite/.codebuddy/skills/workbuddy-auto-signin/` | 独立签到附加Skill、固定上游源码与任务安装器 |
+| `assets/course-suite/.codebuddy/skills/ai-frontier-weekly/` | 独立周报Skill、网页模板、脚本、信源兜底和定时配置材料 |
 | `assets/course-suite/packaging/plugin.json` | 原生专家团描述 |
 | `assets/course-suite/configs/teacher-project.md` | 教师项目指令 |
 | `assets/packages/` | 清单artifacts字段指定的完整原生ZIP |
@@ -18,7 +19,7 @@
 
 五个稳定专家标识是 `ai-intro-course-team-lead`、`ai-intro-course-design`、`ai-intro-course-domain`、`ai-intro-course-assessment`、`ai-intro-course-tutor`。最后一位用于教师课堂答疑准备。日常Skill标识为 `ai-intro-course`；安装入口 `ai-intro-course-setup` 不绑定为日常教学能力。
 
-收到GitHub源码时，仓库根目录下的 `.codebuddy/agents/`、`.codebuddy/skills/ai-intro-course/`、`addons/workbuddy-auto-signin/`、`packaging/plugin.json` 和 `configs/teacher-project.md` 是实际安装材料；本地文件安装器是 `tools/install_project.py`。例如从仓库根运行 `python tools/install_project.py --target "实际项目目录" --dry-run`，检查后执行。源码中的setup目录没有生成的assets或scripts，不能照搬安装包命令；没有构建ZIP时也不能虚构已有ZIP。原生管理工具只接受ZIP时，可取得有权访问的同版本Release包。不要从未知地址下载脚本填补缺口。
+收到GitHub源码时，仓库根目录下的 `.codebuddy/agents/`、`.codebuddy/skills/ai-intro-course/`、`addons/workbuddy-auto-signin/`、`addons/ai-frontier-weekly/`、`packaging/plugin.json` 和 `configs/teacher-project.md` 是实际安装材料；本地文件安装器是 `tools/install_project.py`。例如从仓库根运行 `python tools/install_project.py --target "实际项目目录" --dry-run`，检查后执行。源码中的setup目录没有生成的assets或scripts，不能照搬安装包命令；没有构建ZIP时也不能虚构已有ZIP。原生管理工具只接受ZIP时，可取得有权访问的同版本Release包。不要从未知地址下载脚本填补缺口。
 
 ## 自动配置
 
@@ -30,6 +31,8 @@
 6. **关联资料并读正文。** 使用用户提供或项目已有的有权入口，平台支持时自动关联空间/文档并读一份相关正文。未给入口可先完成安装；不能虚构URL、遍历题库测试安装，或把“关联成功”和目录读取当正文检索通过。
 7. **安装签到附加Skill。** 按清单 `companion_skills` 安装完整 `workbuddy-auto-signin`，需要ZIP时使用对应archive与哈希；独立登记，不给五位教师专家增加签到职责或默认绑定。源码位置为 `addons/workbuddy-auto-signin/`，分发载荷位置见表。缺少原生工具时，本地课程安装器会一并复制其项目Skill文件，仍须区分文件部署与平台登记。
 8. **按选择开启后台功能。** 先读取附加Skill的 `SKILL.md` 与 `references/usage.md`。说明它会读取本机WorkBuddy登录态，每天签到并运行成长中心，自动使用已有补登卡、抽奖机会和能量。用户此次已明确要求同时开启完整功能则直接继续；仅课程安装或文件下载请求不能作为账号操作授权，可用一次简短选择补齐。用户已明确拒绝或暂不开启时不再询问，保留现有后台配置；“先不开启”也不等于要求卸载旧任务。未开启或依赖缺失不妨碍课程安装完成。
+9. **安装并关联周报。** 同样按清单安装完整 `ai-frontier-weekly`，关联教师项目，不给五位专家增加固定绑定。HTML模板、两份脚本、可选Pillow依赖、信源规则、历史格式样稿和定时提示材料都要完整；脚本与模板从真实Skill目录解析。教师没有自定义信源也可使用内置规则，已有信源和历史保留。
+10. **按请求配置周报定时。** 用户明确提出周期生成时，读取该Skill的 `references/workbuddy-setup.md`、清单schedule_template与task_prompt，再用当前真实WorkBuddy原生定时管理能力创建或更新一项项目任务。未给时间且已有配置无法推断时只补齐时间，已明确给出的不重复问。回读真实ID、时间、项目与Skill关联及下一次执行；模板JSON不是平台API。普通安装不创建周报任务、不生成本期新闻、不公开发布、不外发消息，升级不改变原有时间和范围。
 
 开启时从附加Skill目录先运行 `python scripts/manage_signin.py plan`，再运行 `python scripts/manage_signin.py install --mode signin-growth`，最后运行 `status` 回读。本套件使用归属保护的当前用户计划任务，不直接执行上游 `install-windows.ps1`，不自动运行签到。不要创建第二套WorkBuddy原生签到定时任务，不改已有上游任务，不索取或导出登录文件。只回报任务是否配置，真实签到结果另验。
 
@@ -70,7 +73,7 @@ python scripts/install_project.py --source-root assets/course-suite --target "�
 
 ```json
 {
-  "suite_version": "1.3.0",
+  "suite_version": "1.4.0",
   "status": "partial",
   "registered_resources": [],
   "registry_verified": false,
@@ -78,6 +81,9 @@ python scripts/install_project.py --source-root assets/course-suite --target "�
   "selector_visibility_verified": false,
   "runtime_verified": false,
   "materials_body_verified": false,
+  "weekly_skill_registered": false,
+  "weekly_schedule_verified": false,
+  "weekly_publication_verified": false,
   "remaining_actions": []
 }
 ```

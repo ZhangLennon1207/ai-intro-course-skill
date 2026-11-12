@@ -5,7 +5,7 @@ display_name_en: Introduction to AI Teaching Assistant
 description: 面向《人工智能概论》任课教师的教学技能。基于课程资料完成备课、课堂活动、PPT提纲、实验设计、命题评价、专业案例和课堂答疑准备，在WorkBuddy教师项目中使用。
 description_zh: 教师通过一个入口调用课程资料和专家方法，完成备课、命题、案例与课堂答疑准备。
 description_en: Help AI course teachers prepare lessons, experiments, assessments, cases, and classroom explanations using authorized course materials.
-version: 1.3.0
+version: 1.4.0
 author: 人工智能概论课程组
 examples_zh:
   - 结合课程资料，为经管和文法类学生设计单元7的90分钟课程。
@@ -19,6 +19,8 @@ examples_en:
 # 人工智能概论教师助手
 
 在当前 WorkBuddy 教师项目中完成教学任务。本 Skill 供课程主管和四类专家共用，只加载本次任务需要的工作流，直接按教师备课用途处理，不询问教师/学生模式。
+
+用户明确要AI周报或周速递时，使用项目中独立安装的 `ai-frontier-weekly` Skill及其真实检索流程；普通备课仍使用本Skill。周报文件生成、定时执行和公开发布分别按用户请求处理，不因为安装了周报就自动开启定时任务。
 
 ## 当前由谁执行
 

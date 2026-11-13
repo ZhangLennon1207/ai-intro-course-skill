@@ -5,7 +5,7 @@ display_name_en: AI Frontier Weekly
 description: 面向《人工智能概论》教师，检索近一周AI动态，按四类专业生成附来源、课堂意义和讨论问题的Markdown与HTML周报。用于生成或更新周报、维护信源和检查配图；用户要求定期生成时接入WorkBuddy原生定时任务。
 description_zh: 四类专业的AI周报，含可信来源、课堂讨论、本地网页与配图检查。
 description_en: Produce a sourced AI weekly brief for four discipline groups, with Markdown, HTML, classroom prompts, and traceable local images.
-version: 1.4.0
+version: 1.5.0
 author: 人工智能概论课程组；基于用户提供的ai-frontier-weekly交付包整合
 examples_zh:
   - 出一下这周的AI前沿周速递，先生成本地文件。

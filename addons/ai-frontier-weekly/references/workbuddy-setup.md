@@ -1,6 +1,6 @@
 # 周报Skill的安装与定时配置
 
-本Skill随教师套件快捷安装包交付，也可独立上传 `ai-frontier-weekly-1.4.0-workbuddy.zip`。它负责周报，五位教师专家仍共用原教学Skill，不需要另建周报专家或自建执行服务。
+本Skill随教师套件快捷安装包交付，也可独立上传 `ai-frontier-weekly-1.5.0-workbuddy.zip`。它负责周报，五位教师专家仍共用原教学Skill，不需要另建周报专家或自建执行服务。
 
 ## 安装到教师项目
 

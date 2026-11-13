@@ -1,0 +1,3 @@
+# PDF大纲读取和Windows Office渲染，按需要安装，不是生成PPTX必需。
+PyMuPDF>=1.23
+pywin32>=306; sys_platform == "win32"

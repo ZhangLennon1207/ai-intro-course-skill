@@ -5,7 +5,7 @@ display_name_en: WorkBuddy Sign-in and Growth Automation
 description: 当用户要求安装、检查或卸载本机WorkBuddy自动签到与成长中心定时任务时使用。基于固定版本的88lin/workbuddy-auto-signin，在Windows当前用户下配置后台任务。
 description_zh: 快捷配置本机自动签到和成长中心，检查定时任务并支持卸载。
 description_en: Install, inspect, or remove current-user Windows tasks for the pinned WorkBuddy sign-in and growth add-on.
-version: 1.4.0
+version: 1.5.0
 author: 人工智能概论课程组；上游脚本88lin（MIT）
 examples_zh:
   - 同时安装自动签到与成长中心，按说明配置后台任务。

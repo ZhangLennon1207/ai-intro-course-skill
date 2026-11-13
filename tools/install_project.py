@@ -34,6 +34,13 @@ SIGNIN_SKILL_ROOT = PurePosixPath(".codebuddy/skills/workbuddy-auto-signin")
 WEEKLY_SKILL_ROOT = PurePosixPath(".codebuddy/skills/ai-frontier-weekly")
 COMPANION_SKILL_ROOTS = {"workbuddy-auto-signin": SIGNIN_SKILL_ROOT,
                          "ai-frontier-weekly": WEEKLY_SKILL_ROOT}
+PRODUCTION_IDS = ("ai-course-slides", "ai-course-handout", "ai-course-assessment",
+                  "ai-course-analytics", "ai-course-visual")
+COMPANION_SKILL_ROOTS.update({name: PurePosixPath(".codebuddy/skills") / name for name in PRODUCTION_IDS})
+EXAMPLE_ASSETS = {name: {"assets/knowledge-points-example.csv"}
+                  for name in ("ai-course-handout", "ai-course-assessment", "ai-course-analytics")}
+EXAMPLE_ASSETS["ai-course-analytics"].add("assets/demo_answers.csv")
+EXAMPLE_ASSETS["ai-course-slides"] = {"assets/default-template.pptx"}
 COMPANION_SUFFIXES = {".md", ".html", ".json", ".py", ".ps1", ".txt", ".png", ".jpg", ".jpeg"}
 PRIVATE_DIRECTORIES = {"__pycache__", ".git", "runtime-output", "private", "local",
                        "teacher-materials", "teacher-answers", "dist"}
@@ -157,8 +164,10 @@ def source_files(source: Path) -> tuple[dict[str, bytes], str]:
                 bounded_path(source, (current_path / child).relative_to(source).as_posix())
             for filename in names:
                 normalized = filename.casefold()
+                asset_relative = (current_path / filename).relative_to(addon).as_posix()
                 if (normalized.startswith(".env") or ".local." in normalized
-                        or Path(filename).suffix.lower() not in COMPANION_SUFFIXES):
+                        or (Path(filename).suffix.lower() not in COMPANION_SUFFIXES
+                            and asset_relative not in EXAMPLE_ASSETS.get(skill_id, set()))):
                     continue
                 path = current_path / filename
                 if not path.is_file():

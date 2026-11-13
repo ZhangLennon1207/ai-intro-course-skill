@@ -1,0 +1,8 @@
+# 一次装齐：python -m pip install -r requirements.txt
+# 缺依赖时先跑 python scripts/envcheck.py 看缺哪个
+python-pptx>=1.0
+lxml>=4.9
+Pillow>=9.0
+matplotlib>=3.5
+numpy>=1.21
+pypdf>=4.0

@@ -18,7 +18,13 @@ SKILL = ROOT / '.codebuddy/skills/ai-intro-course'
 SETUP = ROOT / 'bootstrap/ai-intro-course-setup'
 SIGNIN = ROOT / 'addons/workbuddy-auto-signin'
 WEEKLY = ROOT / 'addons/ai-frontier-weekly'
-COMPANIONS = (SIGNIN, WEEKLY)
+PRODUCTION_IDS = ('ai-course-slides', 'ai-course-handout', 'ai-course-assessment',
+                  'ai-course-analytics', 'ai-course-visual')
+COMPANIONS = (SIGNIN, WEEKLY, *(ROOT / 'addons' / name for name in PRODUCTION_IDS))
+EXAMPLE_ASSETS = {name: {'assets/knowledge-points-example.csv'}
+                  for name in ('ai-course-handout', 'ai-course-assessment', 'ai-course-analytics')}
+EXAMPLE_ASSETS['ai-course-analytics'].add('assets/demo_answers.csv')
+EXAMPLE_ASSETS['ai-course-slides'] = {'assets/default-template.pptx'}
 DIST = ROOT / 'dist'
 REQUIRED = {'name', 'display_name', 'display_name_en', 'description', 'description_zh',
             'description_en', 'version', 'author'}
@@ -28,13 +34,21 @@ PRIVATE_DIRECTORIES = {'private', 'local', 'runtime-output', 'teacher-materials'
                        'teacher-answers', 'dist', '__pycache__', '.git'}
 
 
-def publishable(relative: PurePosixPath) -> bool:
+def known_example(relative: PurePosixPath, context: str = '') -> bool:
+    if str(relative) in EXAMPLE_ASSETS.get(context, set()):
+        return True
+    return any('/'.join(relative.parts[i + 1:]) in EXAMPLE_ASSETS.get(part, set())
+               for i, part in enumerate(relative.parts))
+
+
+def publishable(relative: PurePosixPath, context: str = '') -> bool:
     name = relative.name.casefold()
     if any(part.casefold() in PRIVATE_DIRECTORIES for part in relative.parts):
         return False
     if name.startswith('.env') or '.local.' in name or name.endswith('.local'):
         return False
-    return relative.suffix.casefold() in SOURCE_SUFFIXES or name in {'.gitignore', '.gitattributes'}
+    return (relative.suffix.casefold() in SOURCE_SUFFIXES or name in {'.gitignore', '.gitattributes'}
+            or known_example(relative, context))
 
 
 def metadata(path: Path) -> dict:
@@ -50,7 +64,7 @@ def read_files(folder: Path, prefix: str = '') -> dict[str, bytes]:
     for path in sorted(folder.rglob('*')):
         if path.is_file():
             relative = PurePosixPath(path.relative_to(folder).as_posix())
-            if not publishable(relative):
+            if not publishable(relative, folder.name):
                 continue
             if path.is_symlink() or not path.resolve().is_relative_to(folder.resolve()):
                 raise ValueError(f'Unsafe source: {path}')
@@ -135,13 +149,13 @@ def markdown_outside_fences(text: str) -> str:
     return '\n'.join(output)
 
 
-def check_bundle(files: dict[str, bytes]) -> int:
+def check_bundle(files: dict[str, bytes], context: str = '') -> int:
     links = 0
     for name, data in files.items():
         assert '..' not in PurePosixPath(name).parts and not PurePosixPath(name).is_absolute()
         nested_package = name.startswith('assets/packages/') and name.endswith('.zip')
-        assert publishable(PurePosixPath(name)) or nested_package, f'Non-distributable path: {name}'
-        if PurePosixPath(name).suffix in {'.md', '.html', '.json', '.py', '.ps1', '.txt'}:
+        assert publishable(PurePosixPath(name), context) or nested_package, f'Non-distributable path: {name}'
+        if PurePosixPath(name).suffix in {'.md', '.html', '.json', '.py', '.ps1', '.txt', '.csv'}:
             text = data.decode('utf-8')
             assert not MATERIAL_SHARE_URL.search(text), f'Populated materials URL: {name}'
             assert '\ufffd' not in text, name
@@ -158,11 +172,11 @@ def check_bundle(files: dict[str, bytes]) -> int:
 
 
 def archive(name: str, root: str, files: dict[str, bytes]) -> dict:
-    links = check_bundle(files)
+    links = check_bundle(files, root)
     dest = DIST / name
     with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as bundle:
         for rel, data in sorted(files.items()):
-            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 12, 0, 0, 0))
+            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 13, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             bundle.writestr(info, data)
@@ -206,7 +220,8 @@ def build() -> dict:
             'name': metadata(SKILL / 'SKILL.md')['display_name']},
         'experts': experts, 'team_manifest': 'packaging/plugin.json',
         'project_type': 'teacher', 'project_config': 'configs/teacher-project.md',
-        'recommended_selection': {'expert_ids': [manifest['agentName']], 'skill_ids': ['ai-intro-course', 'ai-frontier-weekly']},
+        'recommended_selection': {'expert_ids': [manifest['agentName']],
+                                  'skill_ids': ['ai-intro-course', 'ai-frontier-weekly', *PRODUCTION_IDS]},
         'local_installer': 'scripts/install_project.py',
         'registration': 'Prefer actual native management tools; filesystem installation does not verify selectors.',
         'file_hashes': {path: hashlib.sha256(data).hexdigest() for path, data in sorted(payload.items())}
@@ -247,8 +262,18 @@ def build() -> dict:
         'schedule_template': '.codebuddy/skills/ai-frontier-weekly/assets/schedule-template.json',
         'task_prompt': '.codebuddy/skills/ai-frontier-weekly/assets/weekly-task-prompt.md'
     }]
+    for skill_id in PRODUCTION_IDS:
+        record = companion_records[skill_id]
+        plan['companion_skills'].append({
+            'id': skill_id, 'name': metadata(ROOT / 'addons' / skill_id / 'SKILL.md')['display_name'],
+            'source': '.codebuddy/skills/' + skill_id, 'archive': 'assets/packages/' + record['name'],
+            'sha256': record['sha256'], 'install_skill_with_suite': True,
+            'associate_with_teacher_project': True, 'bind_to_course_experts': False,
+            'enable_background_by_default': False, 'enable_publication_by_default': False,
+            'requirements': '.codebuddy/skills/' + skill_id + '/requirements.txt'
+        })
     for companion in plan['companion_skills']:
-        for key in ('schedule_template', 'task_prompt'):
+        for key in ('schedule_template', 'task_prompt', 'requirements'):
             if key in companion:
                 assert companion[key] in payload, f'Missing companion resource: {companion[key]}'
     plan['artifacts'] = {
@@ -281,7 +306,9 @@ def build() -> dict:
     ]
     report = {'version': version, 'project_type': 'teacher', 'native_experts': 5, 'runtime_skills': 1,
               'setup_skills': 1, 'source_structure': 'passed', 'archives': records,
-              'companion_skills': len(COMPANIONS), 'background_automation_default': 'disabled',
+              'companion_skills': len(COMPANIONS), 'production_skills': len(PRODUCTION_IDS),
+              'business_skills_total': 1 + len(COMPANIONS), 'office_visual_render': 'not_executed',
+              'background_automation_default': 'disabled',
               'weekly_native_schedule': 'not_executed', 'weekly_publication': 'not_executed',
               'signin_scheduled_tasks': 'not_executed', 'signin_live_account': 'not_executed',
               'workbuddy_registry': 'not_executed', 'project_selector': 'not_executed',

@@ -1,1 +1,9 @@
 PyYAML
+python-pptx
+lxml
+Pillow>=10
+matplotlib
+numpy
+pypdf
+python-docx
+pandas

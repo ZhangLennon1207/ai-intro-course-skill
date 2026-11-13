@@ -1,11 +1,11 @@
 {
-  "date": "2026-11-12",
-  "version": "1.4.0",
+  "date": "2026-11-13",
+  "version": "1.5.0",
   "project_type": "teacher",
   "command": "python -X utf8 -m unittest discover -s tests -v",
   "local_tests": {
-    "total": 60,
-    "passed": 58,
+    "total": 86,
+    "passed": 84,
     "failed": 0,
     "skipped": 2
   },
@@ -30,14 +30,22 @@
     "周报模板受管备份、教师自改保护与重复安装",
     "模拟HTTP与真实图片字节的配图溯源、大小限制、跳转与可解码性校验",
     "外站图片与本地路径逃逸拒绝，Pillow缺失时如实无图",
-    "旧部署地址与访问码未进入任何分发包，原CSS保持一致"
+    "旧部署地址与访问码未进入任何分发包，原CSS保持一致",
+    "七项配套Skill完整独立ZIP与安装载荷一致，实际安装不执行配套代码或联网",
+    "默认PPTX与三份同字节知识点示例定点放行，其他真实资料仍排除",
+    "实际PPTX、DOCX、SVG及200dpi PNG生成",
+    "教师答案与学生DOCX全部XML及Markdown分离",
+    "组卷错误在写文件前拒绝，量规与知识点映射必须显式",
+    "缺考、真实0分、未评、缺列与重复记录分开处理",
+    "仅总分不推断知识点，无规则不暗设通过参考线，原始异常评分先拒绝再合并"
   ],
   "generic_skill_validation": {
     "scope": "临时投影的公共字段及正文；目标平台额外字段由构建器检查",
     "runtime_skill": "passed",
     "setup_skill": "passed",
     "signin_skill": "passed",
-    "weekly_skill": "passed"
+    "weekly_skill": "passed",
+    "production_skills": {"ai-course-slides": "passed", "ai-course-handout": "passed", "ai-course-assessment": "passed", "ai-course-analytics": "passed", "ai-course-visual": "passed"}
   },
   "teacher_content_observation": {
     "tested_version": "1.2.0",
@@ -83,6 +91,22 @@
     "live_news_retrieval": "not_executed",
     "live_native_schedule": "not_executed",
     "live_publication": "not_executed"
+  },
+  "production_integration": {
+    "tested_version": "1.5.0",
+    "teaching_artifact_tests": 8,
+    "assessment_analytics_tests": 13,
+    "actual_artifacts": ["PPTX", "teacher_DOCX", "student_DOCX", "SVG_editable_text", "PNG_200dpi", "aggregate_CSV_JSON_MD"],
+    "data": "isolated_fixtures_only",
+    "knowledge_examples_identical": true,
+    "office_render": "not_executed",
+    "live_workbuddy_invocation": "not_executed",
+    "instruction_forward_test": {
+      "environment": "独立助手离线读取最终入口与主管路由",
+      "cases": ["3道练习附教师答案", "已有受众时长模板后制作PPTX与Word", "仅总分却要求知识点分析", "周报原图失败后请求教学图"],
+      "observed": ["少量练习不扩成整卷", "实际文件任务复用上下文并路由制作Skill", "不从总分推测知识点", "示意图不能冒充周报原图"],
+      "limitations": "不是原生平台或真实课程资料测试"
+    }
   },
   "workbuddy_tests_executed": 0,
   "workbuddy_registry": "not_executed",

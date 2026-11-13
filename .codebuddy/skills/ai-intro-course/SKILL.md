@@ -5,7 +5,7 @@ display_name_en: Introduction to AI Teaching Assistant
 description: 面向《人工智能概论》任课教师的教学技能。基于课程资料完成备课、课堂活动、PPT提纲、实验设计、命题评价、专业案例和课堂答疑准备，在WorkBuddy教师项目中使用。
 description_zh: 教师通过一个入口调用课程资料和专家方法，完成备课、命题、案例与课堂答疑准备。
 description_en: Help AI course teachers prepare lessons, experiments, assessments, cases, and classroom explanations using authorized course materials.
-version: 1.4.0
+version: 1.5.0
 author: 人工智能概论课程组
 examples_zh:
   - 结合课程资料，为经管和文法类学生设计单元7的90分钟课程。
@@ -52,10 +52,12 @@ examples_en:
 | 出题、评分标准、组卷 | [出题评测](experts/assessment.md) + [命题流程](workflows/course-assessment.md) | 复解并核查技术与评分一致性 |
 | 教师提问、课堂常见问题、易错点与讲解示例 | [课堂答疑准备](experts/course-tutor.md) + [答疑准备流程](workflows/course-tutor.md) | 直接解释或交可上课使用的问答材料，无需其余专家轮流发言 |
 | 专业案例、讨论任务 | [教学设计](experts/teaching-design.md) + [案例流程](workflows/course-case.md) | 检查材料、问题、参考回答是否齐全 |
+| 制作实际PPTX、Word讲义、成套试卷或SVG/PNG教学图 | 对应教学设计或出题评测专家，按[成品制作说明](references/production-skills.md)加载独立制作Skill | 保留原模板、来源和本次交付要求，不以提纲冒充文件 |
+| 实际作答数据或成绩分析 | 出题评测专家 + `ai-course-analytics`，参见[协作与数据规则](references/production-skills.md) | 只报告数据支持的指标，汇总与逐人明细分开 |
 
 需要课程资料的任务，先读取 [资料定位说明](references/course-overview.md) 并执行证据检索。专家根据检索取得的课程内容完成任务，不把运行方法当作教学目标。
 
-这些链接均相对本 Skill 目录。按任务读取对应文件，不只看文件名；文件读取失败时如实说明，不能宣称已执行该模块。七项工作流共用 [交付前检查](workflows/course-quality.md)，检查深度与任务复杂度相称。
+这些链接均相对本 Skill 目录。按任务读取对应文件，不只看文件名；文件读取失败时如实说明，不能宣称已执行该模块。工作流共用 [交付前检查](workflows/course-quality.md)，检查深度与任务复杂度相称。
 
 ## 对话中的执行顺序
 

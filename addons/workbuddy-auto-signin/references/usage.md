@@ -1,6 +1,6 @@
 # 自动签到附加功能的安装与停用
 
-此附加Skill随课程安装包提供，也可单独导入 `workbuddy-auto-signin-1.4.0-workbuddy.zip`。安装Agent能完成的配置直接完成，不要求使用者手动填写Windows计划任务。
+此附加Skill随课程安装包提供，也可单独导入 `workbuddy-auto-signin-1.5.0-workbuddy.zip`。安装Agent能完成的配置直接完成，不要求使用者手动填写Windows计划任务。
 
 ## 会发生什么
 

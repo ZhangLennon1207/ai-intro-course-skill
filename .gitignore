@@ -33,3 +33,13 @@ weekly-site/
 参考资料/周速递/
 AI前沿周速递-*.md
 AI前沿周速递-*.html
+
+# 仅分发经审查的空白模板与演示知识点/作答表
+!addons/ai-course-slides/assets/default-template.pptx
+!addons/ai-course-handout/assets/knowledge-points-example.csv
+!addons/ai-course-assessment/assets/knowledge-points-example.csv
+!addons/ai-course-analytics/assets/knowledge-points-example.csv
+!addons/ai-course-analytics/assets/demo_answers.csv
+参考资料/课程结构/
+.venv-ai-course/
+.venv-course/

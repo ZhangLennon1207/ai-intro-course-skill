@@ -9,6 +9,7 @@ course_materials_entry: 填入本教师项目有权访问的课程资料入口
 
 本项目用于《人工智能概论》教师教学工作，使用ai-intro-course教师助手。
 需要AI周报时调用独立ai-frontier-weekly，默认产出项目内Markdown与HTML；定时生成、公开发布和外部推送分别按用户明确请求及实际工具权限配置。
+需要实际PPTX、Word讲义、成套试卷、学情分析、可编辑教学关系图时，按需使用ai-course-slides、ai-course-handout、ai-course-assessment、ai-course-analytics、ai-course-visual。只要提纲或少量练习时不扩展整套流程。真实学生数据仅留在教师受控项目，示例知识点与模拟成绩不得充当本班事实。
 按本次需求检索课程正文，完成备课、课堂活动、实验、命题、案例或课堂答疑准备。
 主管按需组织专家；普通备课只交完整成品，不固定增加独立核查报告。
 只读取当前账号和工具实际准许的资料。题库、标准答案与内部讲义可在有权时用于教师任务，产物留在受控范围。

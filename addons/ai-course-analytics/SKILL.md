@@ -5,7 +5,7 @@ display_name_en: Course Learning Analytics
 description: 教师提供作答CSV、逐题给分、总分或实验评分后，生成本地统计、聚合分析报告与图。按数据实际支持的范围分析，不从总分反推知识点能力，不自动评主观题文本，不对学生排名或写回正式成绩。
 description_zh: 从真实作答与评分提取逐题证据、统计与改课建议，明确缺考和未评。
 description_en: Analyze authorized response data or total scores with explicit missing-data handling and evidence-linked teaching observations.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 ---
 

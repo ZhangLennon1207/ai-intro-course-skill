@@ -116,6 +116,23 @@ class BuildSafetyTests(unittest.TestCase):
                 builder.check_bundle({'assets/knowledge-points-example.csv': content},
                                      context='ai-course-assessment')
 
+    def test_seminar_credentials_and_classroom_state_cannot_enter_any_archive_layout(self):
+        sensitive = ('llm.json', 'LLM.JSON', 'rooms.json', 'data/rooms.json', 'data/contributions.md',
+                     'references/llm.json', 'templates/session.local.json', 'private/notes.md')
+        prefixes = ('', 'addons/seminar-facilitation/', '.codebuddy/skills/seminar-facilitation/',
+                    'assets/course-suite/.codebuddy/skills/seminar-facilitation/')
+        for prefix in prefixes:
+            for name in sensitive:
+                with self.subTest(path=prefix + name), self.assertRaises(AssertionError):
+                    builder.check_bundle({prefix + name: b'fictional classroom data'}, context='seminar-facilitation')
+        with tempfile.TemporaryDirectory(prefix='seminar-package-safety-') as tmp:
+            root = Path(tmp) / 'seminar-facilitation'
+            for name in (*sensitive, 'SKILL.md', 'references/method.md', 'templates/agenda.md'):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('fictional fixture\n', encoding='utf-8')
+            self.assertEqual(set(builder.read_files(root)), {'SKILL.md', 'references/method.md', 'templates/agenda.md'})
+
 
 if __name__ == '__main__':
     unittest.main()

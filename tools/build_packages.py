@@ -18,9 +18,12 @@ SKILL = ROOT / '.codebuddy/skills/ai-intro-course'
 SETUP = ROOT / 'bootstrap/ai-intro-course-setup'
 SIGNIN = ROOT / 'addons/workbuddy-auto-signin'
 WEEKLY = ROOT / 'addons/ai-frontier-weekly'
+SEMINAR = ROOT / 'addons/seminar-facilitation'
+SEMINAR_AGENT = 'project-seminar-facilitator'
+TEAM_SKILLS = {'ai-intro-course': SKILL, 'seminar-facilitation': SEMINAR}
 PRODUCTION_IDS = ('ai-course-slides', 'ai-course-handout', 'ai-course-assessment',
                   'ai-course-analytics', 'ai-course-visual')
-COMPANIONS = (SIGNIN, WEEKLY, *(ROOT / 'addons' / name for name in PRODUCTION_IDS))
+COMPANIONS = (SIGNIN, WEEKLY, *(ROOT / 'addons' / name for name in PRODUCTION_IDS), SEMINAR)
 EXAMPLE_ASSETS = {name: {'assets/knowledge-points-example.csv'}
                   for name in ('ai-course-handout', 'ai-course-assessment', 'ai-course-analytics')}
 EXAMPLE_ASSETS['ai-course-analytics'].add('assets/demo_answers.csv')
@@ -31,7 +34,8 @@ REQUIRED = {'name', 'display_name', 'display_name_en', 'description', 'descripti
 MATERIAL_SHARE_URL = re.compile(r'https?://(?:www\.)?workbuddy\.cn/space/[sd]/[A-Za-z0-9]{12,}')
 SOURCE_SUFFIXES = {'.md', '.html', '.json', '.py', '.ps1', '.txt', '.png', '.jpg', '.jpeg'}
 PRIVATE_DIRECTORIES = {'private', 'local', 'runtime-output', 'teacher-materials',
-                       'teacher-answers', 'dist', '__pycache__', '.git'}
+                       'teacher-answers', 'data', 'dist', '__pycache__', '.git'}
+PRIVATE_FILENAMES = {'llm.json', 'rooms.json'}
 
 
 def known_example(relative: PurePosixPath, context: str = '') -> bool:
@@ -45,7 +49,7 @@ def publishable(relative: PurePosixPath, context: str = '') -> bool:
     name = relative.name.casefold()
     if any(part.casefold() in PRIVATE_DIRECTORIES for part in relative.parts):
         return False
-    if name.startswith('.env') or '.local.' in name or name.endswith('.local'):
+    if name in PRIVATE_FILENAMES or name.startswith('.env') or '.local.' in name or name.endswith('.local'):
         return False
     return (relative.suffix.casefold() in SOURCE_SUFFIXES or name in {'.gitignore', '.gitattributes'}
             or known_example(relative, context))
@@ -88,7 +92,7 @@ def validate_inputs() -> tuple[dict, str]:
     assert 40 <= len(manifest['displayDescription']['zh']) <= 50
     assert len(manifest['tags']) == len(manifest['quickPrompts']) == 3
     assert manifest['defaultInitPrompt'] == manifest['quickPrompts'][0]
-    assert manifest['skills'] == ['./skills/ai-intro-course']
+    assert manifest['skills'] == ['./skills/' + name for name in TEAM_SKILLS]
     assert not manifest.get('dependencies'), 'No external connector required by this suite'
 
     for folder in (SKILL, SETUP, *COMPANIONS):
@@ -106,12 +110,12 @@ def validate_inputs() -> tuple[dict, str]:
 
     expected_agents = {Path(rel).stem for rel in manifest['agents']}
     actual_agents = list((ROOT / '.codebuddy/agents').glob('*.md'))
-    assert len(expected_agents) == len(actual_agents) == 5
+    assert len(expected_agents) == len(actual_agents) == 6
     assert {p.stem for p in actual_agents} == expected_agents
     for path in actual_agents:
         fm = metadata(path)
         assert fm['name'] == path.stem
-        assert fm['skills'] == ['ai-intro-course']
+        assert fm['skills'] == (['seminar-facilitation'] if path.stem == SEMINAR_AGENT else ['ai-intro-course'])
         assert fm['displayName'] == fm['profession']
         assert 'tools' not in fm
     assert manifest['agentName'] in expected_agents
@@ -176,7 +180,7 @@ def archive(name: str, root: str, files: dict[str, bytes]) -> dict:
     dest = DIST / name
     with zipfile.ZipFile(dest, 'w', zipfile.ZIP_DEFLATED) as bundle:
         for rel, data in sorted(files.items()):
-            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 13, 0, 0, 0))
+            info = zipfile.ZipInfo(f'{root}/{rel}', (2026, 11, 22, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             bundle.writestr(info, data)
@@ -211,23 +215,27 @@ def build() -> dict:
         rel = '.codebuddy/agents/' + m['id'] + '.md'
         experts.append({'id': m['id'], 'name': m['name']['zh'], 'role': m['role'],
                         'source': rel, 'sha256': hashlib.sha256(payload[rel]).hexdigest(),
-                        'skill_ids': ['ai-intro-course'],
+                        'skill_ids': metadata(ROOT / rel)['skills'],
                         'avatar': 'packaging/' + m['avatar']})
     plan = {
         'schema_version': 1, 'suite_id': manifest['name'], 'version': version,
         'payload_root': 'assets/course-suite', 'runtime_skill': {
             'id': 'ai-intro-course', 'source': '.codebuddy/skills/ai-intro-course',
             'name': metadata(SKILL / 'SKILL.md')['display_name']},
+        'team_skills': [{'id': name, 'source': '.codebuddy/skills/' + name,
+                         'name': metadata(folder / 'SKILL.md')['display_name']}
+                        for name, folder in TEAM_SKILLS.items()],
         'experts': experts, 'team_manifest': 'packaging/plugin.json',
         'project_type': 'teacher', 'project_config': 'configs/teacher-project.md',
         'recommended_selection': {'expert_ids': [manifest['agentName']],
-                                  'skill_ids': ['ai-intro-course', 'ai-frontier-weekly', *PRODUCTION_IDS]},
+                                  'skill_ids': ['ai-intro-course', 'ai-frontier-weekly', *PRODUCTION_IDS, 'seminar-facilitation']},
         'local_installer': 'scripts/install_project.py',
         'registration': 'Prefer actual native management tools; filesystem installation does not verify selectors.',
         'file_hashes': {path: hashlib.sha256(data).hexdigest() for path, data in sorted(payload.items())}
     }
     team = read_files(ROOT / '.codebuddy/agents', 'agents')
-    team.update(read_files(SKILL, 'skills/ai-intro-course'))
+    for name, folder in TEAM_SKILLS.items():
+        team.update(read_files(folder, 'skills/' + name))
     team.update(read_files(ROOT / 'packaging/avatars', 'avatars'))
     team['.codebuddy-plugin/plugin.json'] = (ROOT / 'packaging/plugin.json').read_bytes()
     for name in ('settings.json', 'setting.json', 'README.md'):
@@ -272,6 +280,16 @@ def build() -> dict:
             'enable_background_by_default': False, 'enable_publication_by_default': False,
             'requirements': '.codebuddy/skills/' + skill_id + '/requirements.txt'
         })
+    seminar_record = companion_records['seminar-facilitation']
+    plan['companion_skills'].append({
+        'id': 'seminar-facilitation', 'name': metadata(SEMINAR / 'SKILL.md')['display_name'],
+        'source': '.codebuddy/skills/seminar-facilitation',
+        'archive': 'assets/packages/' + seminar_record['name'], 'sha256': seminar_record['sha256'],
+        'install_skill_with_suite': True, 'associate_with_teacher_project': True,
+        'bind_to_course_experts': True, 'expert_ids': [SEMINAR_AGENT],
+        'included_in_native_team': True, 'enable_background_by_default': False,
+        'enable_publication_by_default': False
+    })
     for companion in plan['companion_skills']:
         for key in ('schedule_template', 'task_prompt', 'requirements'):
             if key in companion:
@@ -304,10 +322,12 @@ def build() -> dict:
         *companion_records.values(),
         archive(f'ai-intro-course-source-{version}.zip', 'ai-intro-course-skill', source)
     ]
-    report = {'version': version, 'project_type': 'teacher', 'native_experts': 5, 'runtime_skills': 1,
+    report = {'version': version, 'project_type': 'teacher', 'native_experts': len(experts),
+              'runtime_skills': len(TEAM_SKILLS), 'team_skill_ids': list(TEAM_SKILLS),
               'setup_skills': 1, 'source_structure': 'passed', 'archives': records,
               'companion_skills': len(COMPANIONS), 'production_skills': len(PRODUCTION_IDS),
-              'business_skills_total': 1 + len(COMPANIONS), 'office_visual_render': 'not_executed',
+              'business_skills_total': len({'ai-intro-course', *(folder.name for folder in COMPANIONS)}),
+              'office_visual_render': 'not_executed',
               'background_automation_default': 'disabled',
               'weekly_native_schedule': 'not_executed', 'weekly_publication': 'not_executed',
               'signin_scheduled_tasks': 'not_executed', 'signin_live_account': 'not_executed',

@@ -5,7 +5,7 @@ display_name_en: Teaching Diagram Production
 description: 为课件、讲义或复习材料制作实际SVG和PNG关系图时使用。支持流程、闭环、层级、对比矩阵、知识卡和时间轴；不用于获取照片、仿制教材原图或把示意图当作实验结果。
 description_zh: 按教学关系生成SVG与PNG，校验节点、图注、来源及图片尺寸。
 description_en: Generate editable SVG and PNG teaching diagrams with source captions and checked relationship structures.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 ---
 

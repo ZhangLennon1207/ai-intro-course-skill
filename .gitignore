@@ -43,3 +43,8 @@ AI前沿周速递-*.html
 参考资料/课程结构/
 .venv-ai-course/
 .venv-course/
+
+# 研讨运行数据与模型凭据不进入交付
+llm.json
+rooms.json
+data/

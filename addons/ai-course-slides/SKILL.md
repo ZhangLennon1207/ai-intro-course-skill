@@ -5,7 +5,7 @@ display_name_en: Course Slide Production
 description: 将已核对的教材、教师课件或教学内容制作成实际可编辑PPTX时使用。支持教师模板分析、故事板、覆盖核对、讲稿和图片渲染检查；仅需教案或PPT提纲时仍由教师助手完成。
 description_zh: 从课程依据生成可编辑PPTX，保留教师模板并检查内容覆盖与版式。
 description_en: Build editable teaching PowerPoint files from verified material, preserving supplied templates and checking declared coverage.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 ---
 

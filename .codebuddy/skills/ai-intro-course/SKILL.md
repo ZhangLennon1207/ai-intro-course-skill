@@ -5,7 +5,7 @@ display_name_en: Introduction to AI Teaching Assistant
 description: 面向《人工智能概论》任课教师的教学技能。基于课程资料完成备课、课堂活动、PPT提纲、实验设计、命题评价、专业案例和课堂答疑准备，在WorkBuddy教师项目中使用。
 description_zh: 教师通过一个入口调用课程资料和专家方法，完成备课、命题、案例与课堂答疑准备。
 description_en: Help AI course teachers prepare lessons, experiments, assessments, cases, and classroom explanations using authorized course materials.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 examples_zh:
   - 结合课程资料，为经管和文法类学生设计单元7的90分钟课程。
@@ -26,6 +26,7 @@ examples_en:
 
 - 原生主管 `ai-intro-course-team-lead`：理解需求、检索依据、安排必要的专家任务并整合成品。平台实际提供委派能力时使用；简单任务可直接完成。
 - 原生专家 `ai-intro-course-design`、`ai-intro-course-domain`、`ai-intro-course-assessment`、`ai-intro-course-tutor`：遵循当前专家职责和主管下发的具体子任务，读取对应工作流。不要把本 Skill 再解释成“切换为主管”，不要重新召集全团。缺资料时定向补查或交回具体缺口。
+- 研讨专家 `project-seminar-facilitator` 使用独立的 `seminar-facilitation`，负责研讨组织与证据小结；主管路由方式见[研讨协作](references/seminar-collaboration.md)。
 - 未选择原生专家、仅使用本 Skill：由当前助手按任务需要顺序采用专家视角完成。
 
 原生角色以平台实际选择/委派的专家为准。这里描述的是教师任务分工，不是账号认证或资料授权。
@@ -54,6 +55,7 @@ examples_en:
 | 专业案例、讨论任务 | [教学设计](experts/teaching-design.md) + [案例流程](workflows/course-case.md) | 检查材料、问题、参考回答是否齐全 |
 | 制作实际PPTX、Word讲义、成套试卷或SVG/PNG教学图 | 对应教学设计或出题评测专家，按[成品制作说明](references/production-skills.md)加载独立制作Skill | 保留原模板、来源和本次交付要求，不以提纲冒充文件 |
 | 实际作答数据或成绩分析 | 出题评测专家 + `ai-course-analytics`，参见[协作与数据规则](references/production-skills.md) | 只报告数据支持的指标，汇总与逐人明细分开 |
+| 项目开题/中期/结题答辩、议题研讨、环节小结与会后评议 | 项目研讨主持专家 + 独立 `seminar-facilitation`，参见[研讨协作](references/seminar-collaboration.md) | 时间总账准确，小结可追到发言，不编造共识或正式评分 |
 
 需要课程资料的任务，先读取 [资料定位说明](references/course-overview.md) 并执行证据检索。专家根据检索取得的课程内容完成任务，不把运行方法当作教学目标。
 

@@ -1,11 +1,11 @@
 {
-  "date": "2026-11-13",
-  "version": "1.5.0",
+  "date": "2026-11-22",
+  "version": "1.6.0",
   "project_type": "teacher",
   "command": "python -X utf8 -m unittest discover -s tests -v",
   "local_tests": {
-    "total": 86,
-    "passed": 84,
+    "total": 91,
+    "passed": 89,
     "failed": 0,
     "skipped": 2
   },
@@ -37,7 +37,11 @@
     "教师答案与学生DOCX全部XML及Markdown分离",
     "组卷错误在写文件前拒绝，量规与知识点映射必须显式",
     "缺考、真实0分、未评、缺列与重复记录分开处理",
-    "仅总分不推断知识点，无规则不暗设通过参考线，原始异常评分先拒绝再合并"
+    "仅总分不推断知识点，无规则不暗设通过参考线，原始异常评分先拒绝再合并",
+    "六位专家与两项团队Skill完整包含，原主管和旧成员绑定保持",
+    "旧五专家回执增量升级，新增同名未受管文件保护",
+    "研讨参考与模板完整安装，模型配置和课堂数据库排除",
+    "全部ZIP及嵌套文件确认移除人物姓名"
   ],
   "generic_skill_validation": {
     "scope": "临时投影的公共字段及正文；目标平台额外字段由构建器检查",
@@ -45,6 +49,7 @@
     "setup_skill": "passed",
     "signin_skill": "passed",
     "weekly_skill": "passed",
+    "seminar_skill": "passed",
     "production_skills": {"ai-course-slides": "passed", "ai-course-handout": "passed", "ai-course-assessment": "passed", "ai-course-analytics": "passed", "ai-course-visual": "passed"}
   },
   "teacher_content_observation": {
@@ -106,6 +111,27 @@
       "cases": ["3道练习附教师答案", "已有受众时长模板后制作PPTX与Word", "仅总分却要求知识点分析", "周报原图失败后请求教学图"],
       "observed": ["少量练习不扩成整卷", "实际文件任务复用上下文并路由制作Skill", "不从总分推测知识点", "示意图不能冒充周报原图"],
       "limitations": "不是原生平台或真实课程资料测试"
+    }
+  },
+  "seminar_integration": {
+    "tested_version": "1.6.0",
+    "input_archive_sha256": "fcf5823c8960c59eea4be4fb5341470ecdcb2e8fd323b3fc600aee9476da8680",
+    "native_experts": 6,
+    "lead_agent": "ai-intro-course-team-lead",
+    "new_agent": "project-seminar-facilitator",
+    "new_display_name": "项目研讨主持专家",
+    "new_skill": "seminar-facilitation",
+    "reference_files": 4,
+    "template_files": 4,
+    "persona_name_removed": true,
+    "live_room_code_in_input": false,
+    "live_multiplayer_support": "not_implemented_missing_input_code",
+    "workbuddy_registration": "not_executed",
+    "instruction_forward_test": {
+      "environment": "独立助手读取最终角色、完整Skill、四份参考及四份模板后离线拟稿",
+      "cases": ["90分钟8组，开场5收尾8换场7，每组陈述5", "仅三条日志讨论记录做小结", "直接启动缺失的多人研讨台", "原有3道练习请求"],
+      "observed": ["每组追问3分45秒，17段连续议程合计5400秒", "没有把单人主张或排错顾虑编成全体共识", "如实说明代码缺失，不启动服务或索取密钥", "原有少量练习仍走原命题流程"],
+      "limitations": "不是原生注册、委派回传或现场课堂测试"
     }
   },
   "workbuddy_tests_executed": 0,

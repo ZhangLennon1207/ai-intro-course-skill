@@ -13,8 +13,11 @@ import sys
 import tempfile
 import unittest
 import zipfile
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+SEMINAR_ID = 'seminar-facilitation'
+SEMINAR_AGENT = 'project-seminar-facilitator'
 PRODUCTION_IDS = ('ai-course-slides', 'ai-course-handout', 'ai-course-assessment',
                   'ai-course-analytics', 'ai-course-visual')
 PRODUCTION_SCRIPTS = {
@@ -70,13 +73,13 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(plan['project_config'], 'configs/teacher-project.md')
             self.assertEqual(plan['recommended_selection']['expert_ids'], ['ai-intro-course-team-lead'])
             self.assertEqual(plan['recommended_selection']['skill_ids'],
-                             ['ai-intro-course', 'ai-frontier-weekly', *PRODUCTION_IDS])
+                             ['ai-intro-course', 'ai-frontier-weekly', *PRODUCTION_IDS, SEMINAR_ID])
             companions = {item['id']: item for item in plan['companion_skills']}
-            self.assertEqual(set(companions), {'workbuddy-auto-signin', 'ai-frontier-weekly', *PRODUCTION_IDS})
+            self.assertEqual(set(companions), {'workbuddy-auto-signin', 'ai-frontier-weekly', *PRODUCTION_IDS, SEMINAR_ID})
             payload = setup / plan['payload_root']
             for companion in companions.values():
                 self.assertIs(companion['install_skill_with_suite'], True)
-                self.assertIs(companion['bind_to_course_experts'], False)
+                self.assertIs(companion['bind_to_course_experts'], companion['id'] == SEMINAR_ID)
                 self.assertIs(companion['enable_background_by_default'], False)
                 self.assertEqual(hashlib.sha256((setup / companion['archive']).read_bytes()).hexdigest(),
                                  companion['sha256'])
@@ -122,6 +125,10 @@ class DistributionTests(unittest.TestCase):
             self.assertEqual(weekly['scheduler'], 'workbuddy_native')
             for key in ('schedule_template', 'task_prompt'):
                 self.assertTrue((payload / weekly[key]).is_file())
+            seminar = companions[SEMINAR_ID]
+            self.assertEqual(seminar['expert_ids'], [SEMINAR_AGENT])
+            self.assertIs(seminar['included_in_native_team'], True)
+            self.assertIs(seminar['enable_publication_by_default'], False)
             self.assertFalse((payload / 'configs/student-project.md').exists())
             for name, expected in plan['file_hashes'].items():
                 self.assertEqual(hashlib.sha256((payload / name).read_bytes()).hexdigest(), expected)
@@ -151,6 +158,8 @@ class DistributionTests(unittest.TestCase):
             self.assertTrue((target / '.codebuddy/skills/workbuddy-auto-signin/scripts/manage_signin.py').is_file())
             self.assertTrue((target / '.codebuddy/skills/ai-frontier-weekly/assets/weekly-report-template.html').is_file())
             self.assertTrue((target / '.codebuddy/skills/ai-frontier-weekly/requirements.txt').is_file())
+            self.assertTrue((target / f'.codebuddy/agents/{SEMINAR_AGENT}.md').is_file())
+            self.assertTrue((target / f'.codebuddy/skills/{SEMINAR_ID}/templates/研讨议程单.md').is_file())
             self.assertEqual(unrelated.read_text(encoding='utf-8'), 'Existing teacher notes, preserved.\n')
             self.assertEqual({path.name for path in target.iterdir()}, {'.codebuddy', 'teacher-notes.md'})
             self.assertEqual(result['changed_files'], [])
@@ -167,6 +176,8 @@ class DistributionTests(unittest.TestCase):
                 '.codebuddy/skills/ai-course-assessment/scripts/build_paper.py': b'# teacher custom exporter\n',
                 '.codebuddy/skills/ai-course-analytics/SKILL.md': b'# teacher analytics instructions\n',
                 '.codebuddy/skills/ai-course-visual/scripts/build_figures.py': b'# teacher diagram changes\n',
+                f'.codebuddy/agents/{SEMINAR_AGENT}.md': b'# teacher seminar expert changes\n',
+                f'.codebuddy/skills/{SEMINAR_ID}/templates/研讨议程单.md': b'# teacher seminar agenda\n',
             }
             for name, data in edits.items():
                 self.assertTrue((target / name).is_file(), name)
@@ -211,6 +222,61 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(len(tables), 3)
         self.assertEqual(tables[0], tables[1])
         self.assertEqual(tables[1], tables[2])
+
+    def test_team_contains_six_actual_experts_and_complete_specialist_skill(self):
+        manifest = json.loads((ROOT / 'packaging/plugin.json').read_text(encoding='utf-8'))
+        version = manifest['version']
+        lead = 'ai-intro-course-team-lead'
+        expected = {lead, 'ai-intro-course-design', 'ai-intro-course-domain',
+                    'ai-intro-course-assessment', 'ai-intro-course-tutor', SEMINAR_AGENT}
+        team_path = ROOT / 'dist' / f'ai-intro-course-team-{version}.zip'
+        setup_path = ROOT / 'dist' / f'ai-intro-course-setup-{version}.zip'
+        with zipfile.ZipFile(team_path) as team_zip, zipfile.ZipFile(setup_path) as setup_zip:
+            team = {name.removeprefix('ai-intro-course-team/'): team_zip.read(name)
+                    for name in team_zip.namelist()}
+            packaged = json.loads(team['.codebuddy-plugin/plugin.json'])
+            self.assertEqual(packaged, manifest)
+            self.assertEqual({Path(name).stem for name in packaged['agents']}, expected)
+            self.assertEqual(packaged['agentName'], lead)
+            self.assertEqual(packaged['teamInfo']['leadAgent'], lead)
+            self.assertEqual(set(packaged['teamInfo']['memberAgents']), expected - {lead})
+            self.assertEqual({member['id'] for member in packaged['members']}, expected)
+            self.assertEqual([member['id'] for member in packaged['members'] if member['role'] == 'lead'], [lead])
+            self.assertEqual(packaged['skills'], ['./skills/ai-intro-course', './skills/' + SEMINAR_ID])
+            for name in ('settings.json', 'setting.json'):
+                self.assertEqual(json.loads(team[name]), {'agent': lead})
+            plan = json.loads(setup_zip.read('ai-intro-course-setup/assets/install-plan.json'))
+            experts = {expert['id']: expert for expert in plan['experts']}
+            self.assertEqual(set(experts), expected)
+            self.assertEqual({item['id'] for item in plan['team_skills']}, {'ai-intro-course', SEMINAR_ID})
+            for expert_id, expert in experts.items():
+                front = yaml.safe_load(team['agents/' + expert_id + '.md'].decode('utf-8').split('---', 2)[1])
+                actual_skills = [SEMINAR_ID] if expert_id == SEMINAR_AGENT else ['ai-intro-course']
+                self.assertEqual(front['name'], expert_id)
+                self.assertEqual(front['skills'], actual_skills)
+                self.assertEqual(expert['skill_ids'], actual_skills)
+                self.assertEqual(team['agents/' + expert_id + '.md'],
+                                 setup_zip.read('ai-intro-course-setup/assets/course-suite/' + expert['source']))
+            for member in packaged['members']:
+                self.assertEqual(team[member['avatar']], (ROOT / 'packaging' / member['avatar']).read_bytes())
+            for item in plan['team_skills']:
+                prefix = item['source'] + '/'
+                expected_files = {name[len(prefix):]: digest for name, digest in plan['file_hashes'].items()
+                                  if name.startswith(prefix)}
+                team_files = {name[len('skills/' + item['id'] + '/'):]: blob for name, blob in team.items()
+                              if name.startswith('skills/' + item['id'] + '/')}
+                self.assertEqual(set(team_files), set(expected_files))
+                for name, blob in team_files.items():
+                    self.assertEqual(hashlib.sha256(blob).hexdigest(), expected_files[name])
+            # Only the supplied facilitation method ships; no unavailable live
+            # room, model credentials, or classroom contribution database.
+            self.assertFalse(any('scripts/seminar-room/' in name or Path(name).name.casefold() in {'llm.json', 'rooms.json'}
+                                 for name in team))
+        report = json.loads((ROOT / 'dist/build-report.json').read_text(encoding='utf-8'))
+        self.assertEqual(report['native_experts'], 6)
+        self.assertEqual(report['runtime_skills'], 2)
+        self.assertEqual(report['business_skills_total'], 9)
+        self.assertEqual(set(report['team_skill_ids']), {'ai-intro-course', SEMINAR_ID})
 
 
 if __name__ == '__main__':

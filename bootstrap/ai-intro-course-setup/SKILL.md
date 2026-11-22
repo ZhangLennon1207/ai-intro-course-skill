@@ -2,10 +2,10 @@
 name: ai-intro-course-setup
 display_name: 人工智能概论教师项目快捷安装
 display_name_en: AI Course Teacher Setup
-description: 当用户要求安装、配置或更新《人工智能概论》教师项目时使用。配置五位专家、教学入口、课件、讲义、试卷、学情、教学配图、周报及签到技能，按用户选择配置定时功能。
+description: 当用户要求安装、配置或更新《人工智能概论》教师项目时使用。配置六位专家、教学与研讨入口、五项制作技能、周报及签到；按用户选择配置定时功能。
 description_zh: 自动配置教师专家团和教师助手，保留原项目设置并核对安装结果。
 description_en: Set up or update the AI course teacher experts and their shared Skill using available WorkBuddy management capabilities.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 examples_zh:
   - 把教师专家团和教师助手配置到我的备课项目，能自动完成的直接做。
@@ -21,7 +21,7 @@ examples_en:
 
 先完整读取 [给 WorkBuddy Agent 的安装配置说明](references/installation.md)。收到setup安装包时再读其中的 `assets/install-plan.json`，按清单核对真实资源和载荷位置。收到GitHub源码时，按说明使用源码实际路径；未构建的assets目录不能当作已经存在。不要凭文件夹名猜测平台管理接口。
 
-优先用当前实际可用的WorkBuddy原生管理能力创建或更新五位教师专家、安装教师助手并关联目标项目。能自动完成就直接执行，不让用户逐项填写。目标项目无法确定时，先完成独立检查，再只补齐项目位置；不要为选择用途增加一步。
+优先用当前实际可用的WorkBuddy原生管理能力创建或更新六位教师专家、安装教师助手及研讨主持Skill并关联目标项目。能自动完成就直接执行，不让用户逐项填写。目标项目无法确定时，先完成独立检查，再只补齐项目位置；不要为选择用途增加一步。
 
 安装后分别回读资源登记、项目关联与资料正文读取。文件写入或请求返回不能替代这些结果。按资源ID和内容指纹复用已有登记，不因显示名称变化创建副本。
 
@@ -32,5 +32,7 @@ examples_en:
 同时安装独立 `ai-frontier-weekly` 周报Skill并关联教师项目，不改变五位专家的共享教学Skill绑定。用户要求定期生成时，读取周报的 `references/workbuddy-setup.md`，按实际原生工具创建或更新项目定时任务，并回读真实ID与时间；不把配置模板当已经注册。普通安装不创建任务、不生成当期新闻、不发布网页。已有时间、教师信源配置及发布范围保留，不能因升级改掉。
 
 同时按清单安装五项制作Skill：`ai-course-slides`、`ai-course-handout`、`ai-course-assessment`、`ai-course-analytics`、`ai-course-visual`，并关联目标教师项目。完整复制脚本、参考、示例和默认模板，按实际位置读取各自依赖。需要依赖时在项目专属环境中按本次安装授权配置，不改全局Python；文件安装、依赖可用和真实平台调用分别核对。保留教师模板、实际知识点表、成绩和已有产物，不把示例当正式课程数据，不因为安装就执行出卷或成绩分析。
+
+新增 `project-seminar-facilitator`（项目研讨主持专家）为第六位成员，稳定ID不变，绑定完整 `seminar-facilitation`。团队主管仍指向原 `ai-intro-course-team-lead`，原五位绑定保留。原生团队包内同时含教学入口和研讨Skill，登记团队与独立Skill时按ID复用，不重复创建。附件没有实时多人研讨台代码，不为此安装后台服务、索要模型密钥或声称学生端已部署。
 
 只管理本套件可识别的资源；保留其他专家、技能、项目指令和会话。不要改资料分享范围、账号权限或全局安全设置，不索取凭据，不调用猜测的接口。最后用简短结果说明已完成什么、验证到哪一步、还有哪项需要用户处理。

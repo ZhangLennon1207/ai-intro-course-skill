@@ -1,12 +1,12 @@
 # 教师项目安装与构建
 
-使用者按 [教师使用说明](user-guide.md) 发起安装。对方WorkBuddy Agent按 [安装配置说明](../bootstrap/ai-intro-course-setup/references/installation.md) 检查原生管理能力，自动注册或更新五位专家、安装共享Skill、关联目标教师项目，并合并 [教师项目指令](../configs/teacher-project.md)。保留已有无关配置，仅在用户要求时新建项目。
+使用者按 [教师使用说明](user-guide.md) 发起安装。对方WorkBuddy Agent按 [安装配置说明](../bootstrap/ai-intro-course-setup/references/installation.md) 检查原生管理能力，自动注册或更新六位专家及其实际绑定、关联目标教师项目，并合并 [教师项目指令](../configs/teacher-project.md)。保留已有无关配置，仅在用户要求时新建项目。
 
 默认选择“人工智能概论教师专家团”或“人工智能概论课程主管”，绑定“人工智能概论教师助手”。安装用途固定，不再询问模式。只有回读到实际资源和绑定，才能记为平台配置完成。
 
 ## 本地项目安装
 
-没有原生管理工具时，可将源码的 `.codebuddy/agents/`、完整教学入口和七个配套Skill部署到明确指定的项目目录。文件安装脚本只依赖Python标准库；各项生成与统计按所用Skill的requirements另配：
+没有原生管理工具时，可将源码的 `.codebuddy/agents/`、完整教学入口和八个配套Skill部署到明确指定的项目目录。文件安装脚本只依赖Python标准库；各项生成与统计按所用Skill的requirements另配：
 
 ```text
 python tools/install_project.py --target "实际项目目录" --dry-run
@@ -30,19 +30,20 @@ python tools/install_project.py --target "实际项目目录" --dry-run
 
 | 文件 | 用途 |
 | --- | --- |
-| `ai-intro-course-setup-1.5.0.zip` | 默认交付，含完整教师套件及所有独立ZIP |
-| `ai-intro-course-team-1.5.0.zip` | 原生教师专家团资产包 |
-| `ai-intro-course-1.5.0-workbuddy.zip` | 共享教学入口 |
-| `ai-course-slides-1.5.0-workbuddy.zip` | 实际PPTX制作 |
-| `ai-course-handout-1.5.0-workbuddy.zip` | Word讲义 |
-| `ai-course-assessment-1.5.0-workbuddy.zip` | 出题组卷与量规 |
-| `ai-course-analytics-1.5.0-workbuddy.zip` | 作答与成绩分析 |
-| `ai-course-visual-1.5.0-workbuddy.zip` | SVG/PNG教学关系图 |
-| `ai-frontier-weekly-1.5.0-workbuddy.zip` | AI周报 |
-| `workbuddy-auto-signin-1.5.0-workbuddy.zip` | 签到与成长中心 |
-| `ai-intro-course-source-1.5.0.zip` | 排除本地配置和真实课程原件的源码 |
+| `ai-intro-course-setup-1.6.0.zip` | 默认交付，含完整教师套件及所有独立ZIP |
+| `ai-intro-course-team-1.6.0.zip` | 原生教师专家团资产包 |
+| `ai-intro-course-1.6.0-workbuddy.zip` | 共享教学入口 |
+| `seminar-facilitation-1.6.0-workbuddy.zip` | 独立研讨主持Skill，团队包中也完整包含 |
+| `ai-course-slides-1.6.0-workbuddy.zip` | 实际PPTX制作 |
+| `ai-course-handout-1.6.0-workbuddy.zip` | Word讲义 |
+| `ai-course-assessment-1.6.0-workbuddy.zip` | 出题组卷与量规 |
+| `ai-course-analytics-1.6.0-workbuddy.zip` | 作答与成绩分析 |
+| `ai-course-visual-1.6.0-workbuddy.zip` | SVG/PNG教学关系图 |
+| `ai-frontier-weekly-1.6.0-workbuddy.zip` | AI周报 |
+| `workbuddy-auto-signin-1.6.0-workbuddy.zip` | 签到与成长中心 |
+| `ai-intro-course-source-1.6.0.zip` | 排除本地配置和真实课程原件的源码 |
 
-专家团原生ZIP仍只有一个共享教学Skill；它不是完整快捷安装包。要一起取得周报与签到，应使用setup包或分别安装独立Skill包。打包器校验完整依赖与固定签到上游，保留许可，不联网安装或执行账号操作。
+原生团队ZIP包含六位专家及其绑定的教学入口、研讨Skill；完整快捷安装包另含五项制作能力、周报与签到。研讨Skill也提供独立ZIP，登记时按ID复用，不能因为它同时在团队和独立包里就创建两份。打包器校验完整依赖与固定签到上游，不联网安装或执行账号操作。
 
 GitHub更新不会自动同步到已安装WorkBuddy；使用新包发起更新并复测登记、关联和正文读取。
 

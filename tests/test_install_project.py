@@ -140,6 +140,66 @@ class ProjectInstallerTests(unittest.TestCase):
         self.assertEqual(len(backups), 1)
         self.assertEqual(backups[0].read_text(encoding="utf-8"), "old weekly layout\n")
 
+    def test_seminar_skill_copies_complete_method_and_excludes_classroom_data(self):
+        addon = self.source / "addons/seminar-facilitation"
+        self.write(addon / "SKILL.md", "---\nname: seminar-facilitation\n---\n# Seminar\n")
+        self.write(addon / "references/facilitation.md", "Use actual recorded evidence.\n")
+        self.write(addon / "templates/agenda.md", "# Agenda\n")
+        for name in ("llm.json", "LLM.JSON", "rooms.json", "data/notes.md", "data/rooms.json",
+                     "private/contributions.md", "session.local.json"):
+            self.write(addon / name, "fictional classroom state, not a distributable resource\n")
+        first = self.install()
+        root = self.target / str(installer.SEMINAR_SKILL_ROOT)
+        self.assertEqual({path.relative_to(root).as_posix() for path in root.rglob('*') if path.is_file()},
+                         {"SKILL.md", "references/facilitation.md", "templates/agenda.md"})
+        self.assertTrue((self.target / '.codebuddy/agents/project-seminar-facilitator.md').is_file())
+        for flag in ('account_automation_modified', 'weekly_schedule_modified', 'publication_modified'):
+            self.assertIs(first[flag], False)
+        self.assertEqual(self.install()['changed_files'], [])
+        agenda = root / 'templates/agenda.md'
+        agenda.write_text('Teacher modified agenda\n', encoding='utf-8')
+        with self.assertRaises(installer.InstallationConflict):
+            self.install()
+        self.assertEqual(agenda.read_text(encoding='utf-8'), 'Teacher modified agenda\n')
+
+    def test_existing_five_expert_receipt_upgrades_to_six_without_replacing_lead_or_unrelated_files(self):
+        legacy_agents = tuple(name for name in installer.AGENT_IDS if name != 'project-seminar-facilitator')
+        with mock.patch.object(installer, 'AGENT_IDS', legacy_agents):
+            self.install(materials_entry='https://example.invalid/teacher-course')
+        lead = self.target / '.codebuddy/agents/ai-intro-course-team-lead.md'
+        original_lead = lead.read_bytes()
+        note = self.target / 'teacher-seminar-notes.md'
+        self.write(note, 'Teacher notes remain local.\n')
+        addon = self.source / str(installer.SEMINAR_SKILL_ROOT)
+        self.write(addon / 'SKILL.md', '---\nname: seminar-facilitation\n---\n# Seminar\n')
+        self.write(addon / 'templates/agenda.md', '# Dedicated agenda\n')
+        result = self.install()
+        self.assertEqual(set(result['changed_files']), {
+            '.codebuddy/agents/project-seminar-facilitator.md',
+            '.codebuddy/skills/seminar-facilitation/SKILL.md',
+            '.codebuddy/skills/seminar-facilitation/templates/agenda.md',
+        })
+        self.assertEqual(lead.read_bytes(), original_lead)
+        self.assertEqual(note.read_text(encoding='utf-8'), 'Teacher notes remain local.\n')
+        receipt = json.loads((self.target / str(installer.RECEIPT_PATH)).read_bytes())
+        self.assertEqual(receipt['materials_entry'], 'https://example.invalid/teacher-course')
+        self.assertEqual(self.install()['changed_files'], [])
+
+    def test_unowned_seminar_expert_blocks_upgrade_before_any_course_write(self):
+        legacy_agents = tuple(name for name in installer.AGENT_IDS if name != 'project-seminar-facilitator')
+        with mock.patch.object(installer, 'AGENT_IDS', legacy_agents):
+            self.install()
+        collision = self.target / '.codebuddy/agents/project-seminar-facilitator.md'
+        self.write(collision, '# Existing unrelated seminar expert\n')
+        self.write(self.source / '.codebuddy/agents/ai-intro-course-design.md', '# New upstream design\n')
+        before = {path.relative_to(self.target).as_posix(): path.read_bytes()
+                  for path in self.target.rglob('*') if path.is_file()}
+        with self.assertRaises(installer.InstallationConflict) as error:
+            self.install()
+        self.assertIn('.codebuddy/agents/project-seminar-facilitator.md', error.exception.paths)
+        self.assertEqual({path.relative_to(self.target).as_posix(): path.read_bytes()
+                          for path in self.target.rglob('*') if path.is_file()}, before)
+
     def test_owned_update_backs_up_prior_content_and_installs_new_resources(self):
         self.install()
         relative = f".codebuddy/agents/{installer.AGENT_IDS[1]}.md"

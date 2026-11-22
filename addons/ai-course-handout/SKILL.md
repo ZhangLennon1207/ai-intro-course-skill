@@ -5,7 +5,7 @@ display_name_en: Course Handout Production
 description: 将课程正文、课件故事板或章节内容制作成实际Word讲义时使用。输出教师参考版与去除练习答案的分发版，可保留来源和知识点编号；普通课堂解释不必启动文档生成。
 description_zh: 生成可编辑Word讲义，分开教师答案与学生分发内容，并保留来源对应。
 description_en: Produce editable Word handouts with separate teacher answers and student-facing files from verified teaching material.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 ---
 

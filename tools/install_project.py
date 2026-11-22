@@ -28,12 +28,15 @@ AGENT_IDS = (
     "ai-intro-course-domain",
     "ai-intro-course-assessment",
     "ai-intro-course-tutor",
+    "project-seminar-facilitator",
 )
 SKILL_ROOT = PurePosixPath(".codebuddy/skills") / SKILL_ID
 SIGNIN_SKILL_ROOT = PurePosixPath(".codebuddy/skills/workbuddy-auto-signin")
 WEEKLY_SKILL_ROOT = PurePosixPath(".codebuddy/skills/ai-frontier-weekly")
+SEMINAR_SKILL_ROOT = PurePosixPath(".codebuddy/skills/seminar-facilitation")
 COMPANION_SKILL_ROOTS = {"workbuddy-auto-signin": SIGNIN_SKILL_ROOT,
-                         "ai-frontier-weekly": WEEKLY_SKILL_ROOT}
+                         "ai-frontier-weekly": WEEKLY_SKILL_ROOT,
+                         "seminar-facilitation": SEMINAR_SKILL_ROOT}
 PRODUCTION_IDS = ("ai-course-slides", "ai-course-handout", "ai-course-assessment",
                   "ai-course-analytics", "ai-course-visual")
 COMPANION_SKILL_ROOTS.update({name: PurePosixPath(".codebuddy/skills") / name for name in PRODUCTION_IDS})
@@ -43,7 +46,8 @@ EXAMPLE_ASSETS["ai-course-analytics"].add("assets/demo_answers.csv")
 EXAMPLE_ASSETS["ai-course-slides"] = {"assets/default-template.pptx"}
 COMPANION_SUFFIXES = {".md", ".html", ".json", ".py", ".ps1", ".txt", ".png", ".jpg", ".jpeg"}
 PRIVATE_DIRECTORIES = {"__pycache__", ".git", "runtime-output", "private", "local",
-                       "teacher-materials", "teacher-answers", "dist"}
+                       "teacher-materials", "teacher-answers", "data", "dist"}
+PRIVATE_FILENAMES = {"llm.json", "rooms.json"}
 RULE_PATH = PurePosixPath(".codebuddy/rules/ai-intro-course.md")
 RECEIPT_PATH = PurePosixPath(".codebuddy/ai-intro-course-installation.json")
 BACKUP_ROOT = PurePosixPath(".codebuddy/ai-intro-course-backups")
@@ -165,7 +169,7 @@ def source_files(source: Path) -> tuple[dict[str, bytes], str]:
             for filename in names:
                 normalized = filename.casefold()
                 asset_relative = (current_path / filename).relative_to(addon).as_posix()
-                if (normalized.startswith(".env") or ".local." in normalized
+                if (normalized in PRIVATE_FILENAMES or normalized.startswith(".env") or ".local." in normalized
                         or (Path(filename).suffix.lower() not in COMPANION_SUFFIXES
                             and asset_relative not in EXAMPLE_ASSETS.get(skill_id, set()))):
                     continue
@@ -230,6 +234,8 @@ def project_rule(materials_entry: str | None) -> bytes:
         "",
         "本项目用于教师教学协作，可按请求备课、命题、设计案例或准备课堂答疑。",
         "优先使用当前项目明确配置的课程专家和上述课程 Skill；有其他无关任务时不强制套用课程流程。",
+        "项目答辩或议题研讨可由 project-seminar-facilitator 使用 seminar-facilitation 完成；主管保持原角色。",
+        "研讨小结只依据实际提供的记录，不编造共识或正式评分，不把专家安装当实时多人接入已部署。",
         "用户明确要AI周报时，使用已安装的独立 ai-frontier-weekly Skill，不把普通备课改成周报。",
         "周报默认生成项目内文件；定时执行、公开发布和外部推送分别按用户明确请求及实际工具权限配置。",
         "preferred_course_agent 仅表达建议使用的角色，不表示已经创建平台专家或完成云端项目绑定。",

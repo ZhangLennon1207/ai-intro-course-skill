@@ -5,7 +5,7 @@ display_name_en: Course Assessment Builder
 description: 为教师把知识点或已有题目制成双向细目表、学生题面与教师答案DOCX、项目量规及复核记录。用户明确要组卷、正式文件或量规时调用；零散课堂练习可仍由共享教学Skill直接完成。
 description_zh: 出题、细目表、分离的学生卷与教师卷，以及评分量规文件。
 description_en: Build teacher-requested assessment blueprints, separate student and teacher papers, and explicit scoring rubrics.
-version: 1.5.0
+version: 1.6.0
 author: 人工智能概论课程组
 ---
 

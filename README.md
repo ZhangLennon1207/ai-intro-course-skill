@@ -1,12 +1,12 @@
 # 人工智能概论教师项目
 
-本项目服务于教师备课：检索课程资料，生成教案、课堂活动、实验、题目和课堂答疑准备材料。保留五位专家共用一个课程Skill，由WorkBuddy运行，GitHub管理源码。
+本项目服务于教师教学准备：检索课程资料，生成教案、课堂活动、实验、题目、答疑和研讨主持材料，由WorkBuddy运行，GitHub管理源码。
 
-当前版本 **1.5.0**。五位教师专家共用一个教学入口，按需调用课件、讲义、出题组卷、学情分析、教学配图五项制作能力；快捷安装还包含AI周报和自动签到。
+当前版本 **1.6.0**。专家团现有六位：课程主管、教学设计、AI领域、出题评测、课堂答疑准备和项目研讨主持专家。原主管保持不变，研讨专家使用独立的主持Skill；原有五项制作能力、AI周报和签到随套件保留。
 
 ## 快捷开始
 
-从[版本下载页](https://github.com/ZhangLennon1207/ai-intro-course-skill/releases)取得 `ai-intro-course-setup-1.5.0.zip`，交给WorkBuddy Agent（或者直接把下载页网站粘贴给workbuddy），说明目标项目：
+从[版本下载页](https://github.com/ZhangLennon1207/ai-intro-course-skill/releases)取得 `ai-intro-course-setup-1.6.0.zip`，交给WorkBuddy Agent（或者直接把下载页网站粘贴给workbuddy），说明目标项目：
 
 > 请按安装说明，把教师专家团和教师助手配置到我的“AI概论-教师备课”项目。能自动完成的直接做，保留原有配置，完成后核对登记和关联结果。
 
@@ -32,14 +32,20 @@
 
 主管仍是统一入口，教学设计与出题评测专家按交付物调用制作Skill。普通教案、提纲和少量练习不强制展开成整条流水线。已有上下文不反复提问，课程深度、页数与评分以实际任务和资料为准，不套包内示例政策。
 
+## 项目研讨主持
+
+可以直接说：“8组项目中期答辩，共90分钟，帮我安排议程、逐组追问和主持手卡。”也可贴上某一环节的记录，只要求小结与过渡句。项目研讨主持专家负责时间、追问、控场及基于实际记录的评议；正式分数仍由教师及实际量规决定，不把学生没说过的观点写成共识。
+
+本版接入角色、方法、四份参考和四份可打印模板。附件说明提到的实时多人研讨台代码未包含，当前支持教师粘贴记录后的陪跑，不提供自动听会或学生手机接入。更多见[研讨Skill](addons/seminar-facilitation/SKILL.md)。
+
 ## 两份说明
 
 - [给使用者的安装与使用说明](docs/user-guide.md)
 - [给WorkBuddy Agent的安装配置说明](bootstrap/ai-intro-course-setup/references/installation.md)
 
-专家团包含课程主管、教学设计、AI领域、出题评测和课堂答疑准备。最后一位帮助教师预备常见问题与讲解，不提供独立学习端。普通备课只交需要的成品，检索用于支撑内容，不固定增加专项报告。
+课堂答疑专家帮助教师预备常见问题与讲解，研讨专家专注答辩和议题讨论；项目仍面向教师。普通备课只交需要的成品，检索用于支撑内容，不固定增加专项报告。
 
-源码中的 `.codebuddy/agents/` 保存五个专家定义，`.codebuddy/skills/ai-intro-course/` 保存共享教学入口；`addons/` 保存五项制作Skill及周报、签到。`bootstrap/` 是安装入口，`packaging/` 是原生套件配置，`tools/` 负责安装和打包。维护人员安装 `requirements-dev.txt` 并运行 `python tools/build_packages.py` 生成 `dist/` 下的交付包。
+源码中的 `.codebuddy/agents/` 保存六个专家定义，`.codebuddy/skills/ai-intro-course/` 保存共享教学入口；`addons/` 保存研讨、五项制作Skill、周报和签到。`bootstrap/` 是安装入口，`packaging/` 是原生套件配置，`tools/` 负责安装和打包。维护人员安装 `requirements-dev.txt` 并运行 `python tools/build_packages.py` 生成 `dist/` 下的交付包。
 
 真实资料入口由教师项目配置。真实课程原件、内部题库与答案、学生作答和密钥不进入源码或安装包。公开包只带经审查的空白模板与明确标注的示例，示例知识点不能充当整门课编码，演示成绩不能充当本班学情。当前GitHub仓库公开；课程资料仍按各自WorkBuddy账号的实际权限读取。
 
